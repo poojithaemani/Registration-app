@@ -7,15 +7,19 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ValidationService } from '../services/validation.service';
+import { HttpClientModule } from '@angular/common/http';
+import { AuthenticationService } from '../services/authentication.service';
 
 /**
  * LoginComponent handles user authentication
- * Provides email/password form with validation and navigation to registration
+ * - Validates email and password
+ * - Calls backend API for authentication
+ * - Stores user session in localStorage
+ * - Navigates to registration page on successful login
  */
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, HttpClientModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -24,11 +28,12 @@ export class LoginComponent {
   showPassword = false; // Tracks whether password field is visible or masked
   submitted = false; // Tracks if form has been submitted
   errorMessage = ''; // Stores form validation error messages
+  isLoading = false; // Tracks if login request is in progress
 
   constructor(
     private formBuilder: FormBuilder,
     public router: Router,
-    private validationService: ValidationService
+    private authService: AuthenticationService
   ) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
@@ -46,19 +51,51 @@ export class LoginComponent {
 
   /**
    * Handles login form submission
-   * Validates form fields and navigates to registration page on success
+   * - Validates form fields
+   * - Calls backend authentication API
+   * - Navigates to registration on success
+   * - Displays appropriate error messages
    */
   onLogin(): void {
     this.submitted = true;
     this.errorMessage = '';
 
     if (this.loginForm.invalid) {
-      this.errorMessage = 'All fields are required';
+      this.errorMessage = 'Please enter valid email and password';
       return;
     }
 
-    // Simulate successful login
-    this.router.navigate(['/registration']);
+    this.isLoading = true;
+
+    const credentials = {
+      email: this.loginForm.get('email')?.value,
+      password: this.loginForm.get('password')?.value,
+    };
+
+    this.authService.login(credentials).subscribe(
+      (response) => {
+        this.isLoading = false;
+
+        if (response.success) {
+          // Navigate to registration on successful login
+          this.router.navigate(['/registration']);
+        } else {
+          this.errorMessage = response.message || 'Login failed';
+        }
+      },
+      (error) => {
+        this.isLoading = false;
+        console.error('Login error:', error);
+
+        if (error.status === 401) {
+          this.errorMessage = 'Invalid email or password';
+        } else if (error.status === 400) {
+          this.errorMessage = 'Email and password are required';
+        } else {
+          this.errorMessage = 'Server error. Please try again later.';
+        }
+      }
+    );
   }
 
   get email() {

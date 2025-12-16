@@ -48,7 +48,9 @@
       </div>
 
       <!-- Login Button -->
-      <button type="submit" class="btn-login">Login</button>
+      <button type="submit" class="btn-login" [disabled]="isLoading">
+        {{ isLoading ? "Logging in..." : "Login" }}
+      </button>
 
       <!-- Error Message -->
       <div *ngIf="errorMessage" class="error-message-alert">
