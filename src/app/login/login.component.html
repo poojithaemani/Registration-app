@@ -1,0 +1,59 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1 class="login-heading">Login</h1>
+    <p class="login-subheading">Enter your account details</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="required">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-control"
+          placeholder="Enter your email"
+          [class.is-invalid]="submitted && email?.invalid"
+        />
+        <div *ngIf="submitted && email?.invalid" class="error-message">
+          Email is required and must be valid
+        </div>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="required">Password</label>
+        <div class="password-wrapper">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            class="form-control"
+            placeholder="Enter your password"
+            [class.is-invalid]="submitted && password?.invalid"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+            title="Toggle password visibility"
+          >
+            <span *ngIf="showPassword">👁️</span>
+            <span *ngIf="!showPassword">👁️‍🗨️</span>
+          </button>
+        </div>
+        <div *ngIf="submitted && password?.invalid" class="error-message">
+          Password is required
+        </div>
+      </div>
+
+      <!-- Login Button -->
+      <button type="submit" class="btn-login">Login</button>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-message-alert">
+        {{ errorMessage }}
+      </div>
+    </form>
+  </div>
+</div>
