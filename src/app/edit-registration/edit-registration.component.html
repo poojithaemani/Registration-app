@@ -1,54 +1,106 @@
 <div class="edit-registration-container">
+  <!-- Success Snackbar -->
+  <div *ngIf="successMessage" class="snackbar snackbar-success">
+    <span>{{ successMessage }}</span>
+    <button type="button" class="snackbar-close" (click)="successMessage = ''">
+      Close
+    </button>
+  </div>
+
   <div class="edit-registration-card">
+    <!-- Header with Search and Controls -->
     <div class="header-section">
-      <div class="header-left">
-        <h1 class="heading">Student Registration Details</h1>
-        <button type="button" class="back-to-login" (click)="navigateToLogin()">
-          Back to Login
-        </button>
+      <div class="header-top">
+        <div class="header-left">
+          <h1 class="heading">Student Registration Details</h1>
+          <input
+            type="text"
+            placeholder="Search fields..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearch(searchTerm)"
+            class="search-bar"
+          />
+        </div>
+        <div class="header-right">
+          <button
+            type="button"
+            class="back-to-login"
+            (click)="navigateToLogin()"
+          >
+            Back to Login
+          </button>
+          <button
+            *ngIf="!isEditMode"
+            type="button"
+            class="btn-edit"
+            (click)="enableEditMode()"
+          >
+            Edit Details
+          </button>
+          <button
+            *ngIf="isEditMode"
+            type="button"
+            class="btn-edit"
+            [disabled]="true"
+            style="opacity: 0.6"
+          >
+            Edit Details
+          </button>
+        </div>
       </div>
-      <button
-        *ngIf="!isEditMode"
-        type="button"
-        class="btn-edit"
-        (click)="enableEditMode()"
-      >
-        Edit Details
-      </button>
     </div>
 
-    <form [formGroup]="registrationForm">
+    <!-- Form -->
+    <form [formGroup]="registrationForm" *ngIf="!loading">
       <!-- Child Info Section -->
       <div class="form-section">
         <h2 class="section-title">Child Information</h2>
         <div class="form-row">
-          <div class="form-group">
-            <label>First Name</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('childFirstName') }"
+          >
+            <label
+              >First Name
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="childFirstName"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('childFirstName')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('childFirstName')" class="error-message">
               First name is required
             </div>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('childMiddleName') }"
+          >
             <label>Middle Name</label>
             <input
               type="text"
               formControlName="childMiddleName"
               class="form-control"
+              [readonly]="!isEditMode"
             />
           </div>
-          <div class="form-group">
-            <label>Last Name</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('childLastName') }"
+          >
+            <label
+              >Last Name
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="childLastName"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('childLastName')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('childLastName')" class="error-message">
               Last name is required
@@ -57,12 +109,19 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label>Gender</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('gender') }"
+          >
+            <label
+              >Gender
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="gender"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('gender')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select Gender</option>
               <option *ngFor="let option of genderOptions" [value]="option">
@@ -73,25 +132,39 @@
               Gender is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Date of Birth</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('dateOfBirth') }"
+          >
+            <label
+              >Date of Birth
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="date"
               formControlName="dateOfBirth"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('dateOfBirth')"
+              [disabled]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('dateOfBirth')" class="error-message">
               Date of birth is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Place of Birth</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('placeOfBirth') }"
+          >
+            <label
+              >Place of Birth
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="placeOfBirth"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('placeOfBirth')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('placeOfBirth')" class="error-message">
               Place of birth is required
@@ -104,13 +177,20 @@
       <div class="form-section">
         <h2 class="section-title">Parent/Guardian Information</h2>
         <div class="form-row">
-          <div class="form-group">
-            <label>First Name</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentFirstName') }"
+          >
+            <label
+              >First Name
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="parentFirstName"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentFirstName')"
+              [readonly]="!isEditMode"
             />
             <div
               *ngIf="isFieldInvalid('parentFirstName')"
@@ -119,21 +199,32 @@
               First name is required
             </div>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentMiddleName') }"
+          >
             <label>Middle Name</label>
             <input
               type="text"
               formControlName="parentMiddleName"
               class="form-control"
+              [readonly]="!isEditMode"
             />
           </div>
-          <div class="form-group">
-            <label>Last Name</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentLastName') }"
+          >
+            <label
+              >Last Name
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="parentLastName"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentLastName')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('parentLastName')" class="error-message">
               Last name is required
@@ -142,12 +233,19 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label>Relationship</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('relationship') }"
+          >
+            <label
+              >Relationship
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="relationship"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('relationship')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select Relationship</option>
               <option
@@ -161,13 +259,20 @@
               Relationship is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Email</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentEmail') }"
+          >
+            <label
+              >Email
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="email"
               formControlName="parentEmail"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentEmail')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('parentEmail')" class="error-message">
               Valid email is required
@@ -176,24 +281,35 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group full-width">
-            <label>Address Line 1</label>
+          <div
+            class="form-group full-width"
+            [ngClass]="{ highlighted: isHighlighted('parentAddress1') }"
+          >
+            <label
+              >Address Line 1
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="parentAddress1"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentAddress1')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('parentAddress1')" class="error-message">
               Address is required
             </div>
           </div>
-          <div class="form-group full-width">
+          <div
+            class="form-group full-width"
+            [ngClass]="{ highlighted: isHighlighted('parentAddress2') }"
+          >
             <label>Address Line 2</label>
             <input
               type="text"
               formControlName="parentAddress2"
               class="form-control"
+              [readonly]="!isEditMode"
             />
           </div>
         </div>
@@ -205,15 +321,22 @@
               type="text"
               formControlName="parentCountry"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
-          <div class="form-group">
-            <label>State</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentState') }"
+          >
+            <label
+              >State
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="parentState"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentState')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select State</option>
               <option *ngFor="let state of usStates" [value]="state.name">
@@ -224,25 +347,39 @@
               State is required
             </div>
           </div>
-          <div class="form-group">
-            <label>City</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentCity') }"
+          >
+            <label
+              >City
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="parentCity"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentCity')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('parentCity')" class="error-message">
               City is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Zip Code</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentZipCode') }"
+          >
+            <label
+              >Zip Code
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="parentZipCode"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentZipCode')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
               Zip code is required
@@ -251,12 +388,19 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label>Phone Type</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentPhoneType') }"
+          >
+            <label
+              >Phone Type
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="parentPhoneType"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentPhoneType')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select Phone Type</option>
               <option *ngFor="let option of phoneTypeOptions" [value]="option">
@@ -270,8 +414,14 @@
               Phone type is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Phone Number</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('parentPhoneNumber') }"
+          >
+            <label
+              >Phone Number
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <div class="phone-input-wrapper">
               <span class="country-code">+1 (US)</span>
               <input
@@ -282,6 +432,7 @@
                 maxlength="14"
                 (keypress)="onPhoneKeypress($event, 'parentPhoneNumber')"
                 [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
+                [readonly]="!isEditMode"
               />
             </div>
             <div
@@ -291,11 +442,17 @@
               Phone number must be 10 digits
             </div>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{
+              highlighted: isHighlighted('parentAlternatePhoneType')
+            }"
+          >
             <label>Alternate Phone Type</label>
             <select
               formControlName="parentAlternatePhoneType"
               class="form-control"
+              [disabled]="!isEditMode"
             >
               <option value="">Select Phone Type</option>
               <option *ngFor="let option of phoneTypeOptions" [value]="option">
@@ -303,7 +460,12 @@
               </option>
             </select>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{
+              highlighted: isHighlighted('parentAlternatePhoneNumber')
+            }"
+          >
             <label>Alternate Phone Number</label>
             <input
               type="text"
@@ -312,6 +474,7 @@
               placeholder="(555) 555-5555"
               maxlength="14"
               (keypress)="onPhoneKeypress($event, 'parentAlternatePhoneNumber')"
+              [readonly]="!isEditMode"
             />
           </div>
         </div>
@@ -321,13 +484,20 @@
       <div class="form-section">
         <h2 class="section-title">Medical Information</h2>
         <div class="form-row">
-          <div class="form-group">
-            <label>Physician First Name</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('physicianFirstName') }"
+          >
+            <label
+              >Physician First Name
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="physicianFirstName"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('physicianFirstName')"
+              [readonly]="!isEditMode"
             />
             <div
               *ngIf="isFieldInvalid('physicianFirstName')"
@@ -336,13 +506,20 @@
               First name is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Physician Last Name</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('physicianLastName') }"
+          >
+            <label
+              >Physician Last Name
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="physicianLastName"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('physicianLastName')"
+              [readonly]="!isEditMode"
             />
             <div
               *ngIf="isFieldInvalid('physicianLastName')"
@@ -354,13 +531,20 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group full-width">
-            <label>Address Line 1</label>
+          <div
+            class="form-group full-width"
+            [ngClass]="{ highlighted: isHighlighted('medicalAddress1') }"
+          >
+            <label
+              >Address Line 1
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="medicalAddress1"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('medicalAddress1')"
+              [readonly]="!isEditMode"
             />
             <div
               *ngIf="isFieldInvalid('medicalAddress1')"
@@ -369,12 +553,16 @@
               Address is required
             </div>
           </div>
-          <div class="form-group full-width">
+          <div
+            class="form-group full-width"
+            [ngClass]="{ highlighted: isHighlighted('medicalAddress2') }"
+          >
             <label>Address Line 2</label>
             <input
               type="text"
               formControlName="medicalAddress2"
               class="form-control"
+              [readonly]="!isEditMode"
             />
           </div>
         </div>
@@ -386,15 +574,22 @@
               type="text"
               formControlName="medicalCountry"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
-          <div class="form-group">
-            <label>State</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('medicalState') }"
+          >
+            <label
+              >State
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="medicalState"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('medicalState')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select State</option>
               <option *ngFor="let state of usStates" [value]="state.name">
@@ -405,25 +600,39 @@
               State is required
             </div>
           </div>
-          <div class="form-group">
-            <label>City</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('medicalCity') }"
+          >
+            <label
+              >City
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="medicalCity"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('medicalCity')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('medicalCity')" class="error-message">
               City is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Zip Code</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('medicalZipCode') }"
+          >
+            <label
+              >Zip Code
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="medicalZipCode"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('medicalZipCode')"
+              [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
               Zip code is required
@@ -432,12 +641,19 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label>Phone Type</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('medicalPhoneType') }"
+          >
+            <label
+              >Phone Type
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="medicalPhoneType"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('medicalPhoneType')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select Phone Type</option>
               <option *ngFor="let option of phoneTypeOptions" [value]="option">
@@ -451,8 +667,14 @@
               Phone type is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Phone Number</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('medicalPhoneNumber') }"
+          >
+            <label
+              >Phone Number
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <div class="phone-input-wrapper">
               <span class="country-code">+1 (US)</span>
               <input
@@ -463,6 +685,7 @@
                 maxlength="14"
                 (keypress)="onPhoneKeypress($event, 'medicalPhoneNumber')"
                 [class.is-invalid]="isFieldInvalid('medicalPhoneNumber')"
+                [readonly]="!isEditMode"
               />
             </div>
             <div
@@ -472,11 +695,17 @@
               Phone number must be 10 digits
             </div>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{
+              highlighted: isHighlighted('medicalAlternatePhoneType')
+            }"
+          >
             <label>Alternate Phone Type</label>
             <select
               formControlName="medicalAlternatePhoneType"
               class="form-control"
+              [disabled]="!isEditMode"
             >
               <option value="">Select Phone Type</option>
               <option *ngFor="let option of phoneTypeOptions" [value]="option">
@@ -484,7 +713,12 @@
               </option>
             </select>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{
+              highlighted: isHighlighted('medicalAlternatePhoneNumber')
+            }"
+          >
             <label>Alternate Phone Number</label>
             <input
               type="text"
@@ -495,6 +729,7 @@
               (keypress)="
                 onPhoneKeypress($event, 'medicalAlternatePhoneNumber')
               "
+              [readonly]="!isEditMode"
             />
           </div>
         </div>
@@ -504,31 +739,45 @@
       <div class="form-section">
         <h2 class="section-title">Care Facility Information</h2>
         <div class="form-row">
-          <div class="form-group full-width">
-            <label>Care Facility Name</label>
+          <div
+            class="form-group full-width"
+            [ngClass]="{ highlighted: isHighlighted('emergencyContactName') }"
+          >
+            <label
+              >Emergency Contact Name
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
-              formControlName="careFacilityName"
+              formControlName="emergencyContactName"
               class="form-control"
-              [class.is-invalid]="isFieldInvalid('careFacilityName')"
+              [class.is-invalid]="isFieldInvalid('emergencyContactName')"
+              [readonly]="!isEditMode"
             />
             <div
-              *ngIf="isFieldInvalid('careFacilityName')"
+              *ngIf="isFieldInvalid('emergencyContactName')"
               class="error-message"
             >
-              Care facility name is required
+              Emergency contact name is required
             </div>
           </div>
         </div>
 
         <div class="form-row">
-          <div class="form-group full-width">
-            <label>Address Line 1</label>
+          <div
+            class="form-group full-width"
+            [ngClass]="{ highlighted: isHighlighted('careFacilityAddress1') }"
+          >
+            <label
+              >Address Line 1
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="careFacilityAddress1"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('careFacilityAddress1')"
+              [readonly]="!isEditMode"
             />
             <div
               *ngIf="isFieldInvalid('careFacilityAddress1')"
@@ -537,12 +786,16 @@
               Address is required
             </div>
           </div>
-          <div class="form-group full-width">
+          <div
+            class="form-group full-width"
+            [ngClass]="{ highlighted: isHighlighted('careFacilityAddress2') }"
+          >
             <label>Address Line 2</label>
             <input
               type="text"
               formControlName="careFacilityAddress2"
               class="form-control"
+              [readonly]="!isEditMode"
             />
           </div>
         </div>
@@ -554,15 +807,22 @@
               type="text"
               formControlName="careFacilityCountry"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
-          <div class="form-group">
-            <label>State</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('careFacilityState') }"
+          >
+            <label
+              >State
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="careFacilityState"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('careFacilityState')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select State</option>
               <option *ngFor="let state of usStates" [value]="state.name">
@@ -576,13 +836,20 @@
               State is required
             </div>
           </div>
-          <div class="form-group">
-            <label>City</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('careFacilityCity') }"
+          >
+            <label
+              >City
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="careFacilityCity"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('careFacilityCity')"
+              [readonly]="!isEditMode"
             />
             <div
               *ngIf="isFieldInvalid('careFacilityCity')"
@@ -591,13 +858,20 @@
               City is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Zip Code</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('careFacilityZipCode') }"
+          >
+            <label
+              >Zip Code
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <input
               type="text"
               formControlName="careFacilityZipCode"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('careFacilityZipCode')"
+              [readonly]="!isEditMode"
             />
             <div
               *ngIf="isFieldInvalid('careFacilityZipCode')"
@@ -609,12 +883,19 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group">
-            <label>Phone Type</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('careFacilityPhoneType') }"
+          >
+            <label
+              >Phone Type
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <select
               formControlName="careFacilityPhoneType"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('careFacilityPhoneType')"
+              [disabled]="!isEditMode"
             >
               <option value="">Select Phone Type</option>
               <option *ngFor="let option of phoneTypeOptions" [value]="option">
@@ -628,25 +909,32 @@
               Phone type is required
             </div>
           </div>
-          <div class="form-group">
-            <label>Phone Number</label>
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('emergencyPhoneNumber') }"
+          >
+            <label
+              >Emergency Contact Phone Number
+              <span *ngIf="isEditMode" class="required-star">*</span></label
+            >
             <div class="phone-input-wrapper">
               <span class="country-code">+1 (US)</span>
               <input
                 type="text"
-                formControlName="careFacilityPhoneNumber"
+                formControlName="emergencyPhoneNumber"
                 class="form-control"
                 placeholder="(555) 555-5555"
                 maxlength="14"
-                (keypress)="onPhoneKeypress($event, 'careFacilityPhoneNumber')"
-                [class.is-invalid]="isFieldInvalid('careFacilityPhoneNumber')"
+                (keypress)="onPhoneKeypress($event, 'emergencyPhoneNumber')"
+                [class.is-invalid]="isFieldInvalid('emergencyPhoneNumber')"
+                [readonly]="!isEditMode"
               />
             </div>
             <div
-              *ngIf="isFieldInvalid('careFacilityPhoneNumber')"
+              *ngIf="isFieldInvalid('emergencyPhoneNumber')"
               class="error-message"
             >
-              Phone number must be 10 digits
+              Emergency contact phone number must be 10 digits
             </div>
           </div>
         </div>
@@ -654,7 +942,7 @@
 
       <!-- Enrollment Program Details Section (Read-only) -->
       <div class="form-section">
-        <h2 class="section-title">Enrollment Program Details (Read-only)</h2>
+        <h2 class="section-title">Enrollment Program Details</h2>
         <div class="form-row">
           <div class="form-group">
             <label>Program Type</label>
@@ -662,7 +950,7 @@
               type="text"
               formControlName="programType"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
           <div class="form-group">
@@ -671,7 +959,7 @@
               type="text"
               formControlName="roomType"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
           <div class="form-group">
@@ -680,22 +968,23 @@
               type="date"
               formControlName="enrollmentDate"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
         </div>
       </div>
 
-      <!-- Error Message Alert -->
-      <div
-        *ngIf="errorMessage"
-        class="error-message-alert"
-        [class.success]="errorMessage.includes('successfully')"
-      >
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-message-alert">
         {{ errorMessage }}
       </div>
 
-      <!-- Action Buttons -->
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="success-message-alert">
+        {{ successMessage }}
+      </div>
+
+      <!-- Action Buttons - Only visible in edit mode -->
       <div class="form-actions" *ngIf="isEditMode">
         <button type="button" class="btn-primary" (click)="onSaveChanges()">
           Save Changes

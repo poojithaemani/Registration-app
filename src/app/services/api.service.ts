@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { RegistrationData } from './registration-data.service';
 
 /**
  * ApiService - Centralized API communication layer
@@ -39,7 +40,7 @@ export class ApiService {
    * @returns Observable with registration response
    */
   registerStudent(studentData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register-student`, studentData);
+    return this.http.post(`${this.apiUrl}/registrations`, studentData);
   }
 
   /**
@@ -47,8 +48,8 @@ export class ApiService {
    * @param studentId - Unique student identifier
    * @returns Observable with student data
    */
-  getStudentData(studentId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/student/${studentId}`);
+  getStudentData(childId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/registrations/${childId}`);
   }
 
   /**
@@ -57,8 +58,27 @@ export class ApiService {
    * @param studentData - Updated student data
    * @returns Observable with update response
    */
-  updateStudentData(studentId: number, studentData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/student/${studentId}`, studentData);
+  updateStudentData(childId: number, studentData: any): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/registrations/${childId}`,
+      studentData
+    );
+  }
+
+  /**
+   * Update existing student registration data
+   * @param childId - Child ID for the registration to update
+   * @param registrationData - Updated student data
+   * @returns Observable with update response
+   */
+  updateRegistration(
+    childId: number,
+    registrationData: RegistrationData
+  ): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/registrations/${childId}`,
+      registrationData
+    );
   }
 
   /**
@@ -71,40 +91,5 @@ export class ApiService {
    */
   getAllUsers(): Observable<any> {
     return this.http.get(`${this.apiUrl}/users`);
-  }
-
-  /**
-   * Get user profile by ID
-   * @param userId - Unique user identifier
-   * @returns Observable with user profile data
-   */
-  getUserProfile(userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/user/${userId}`);
-  }
-
-  /**
-   * Update user profile
-   * @param userId - Unique user identifier
-   * @param userData - Updated user data
-   * @returns Observable with update response
-   */
-  updateUserProfile(userId: number, userData: any): Observable<any> {
-    return this.http.put(`${this.apiUrl}/user/${userId}`, userData);
-  }
-
-  /**
-   * Change user password
-   * @param userId - Unique user identifier
-   * @param passwordData - { oldPassword: string, newPassword: string }
-   * @returns Observable with change password response
-   */
-  changePassword(
-    userId: number,
-    passwordData: { oldPassword: string; newPassword: string }
-  ): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/user/${userId}/change-password`,
-      passwordData
-    );
   }
 }

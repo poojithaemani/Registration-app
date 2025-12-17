@@ -247,3 +247,82 @@ select.form-control {
     width: 100%;
   }
 }
+
+.error-message-alert {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c62828;
+  font-weight: 500;
+}
+
+.success-message-alert {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #2e7d32;
+  font-weight: 500;
+}
+/* Snackbar Styles */
+.snackbar {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px 24px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease-out;
+  z-index: 1000;
+  min-width: 400px;
+  max-width: 600px;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translate(-50%, -60%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+.snackbar-success {
+  background-color: #4caf50;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.snackbar-error {
+  background-color: #f44336;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.snackbar-close {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 0;
+  margin-left: 20px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.snackbar-close:hover {
+  opacity: 1;
+}

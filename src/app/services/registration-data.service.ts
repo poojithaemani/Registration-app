@@ -44,7 +44,8 @@ export interface MedicalInfo {
 }
 
 export interface CareFacilityInfo {
-  name: string;
+  emergencyContactName: string;
+  emergencyPhoneNumber: string;
   address1: string;
   address2: string;
   country: string;
@@ -52,19 +53,20 @@ export interface CareFacilityInfo {
   city: string;
   zipCode: string;
   phoneType: string;
-  phoneNumber: string;
 }
 
 export interface EnrollmentProgramDetails {
   schoolDay: string;
   programStatus: string;
-  programType: string;
+  programType: string | number;
   enrollmentDate: Date;
-  roomType: string;
+  roomType: string | number;
+  planType: string;
   nextPaymentDue: Date;
 }
 
 export interface RegistrationData {
+  childId?: number;
   childInfo: ChildInfo;
   parentGuardianInfo: ParentGuardianInfo;
   medicalInfo: MedicalInfo;
@@ -75,6 +77,11 @@ export interface RegistrationData {
 @Injectable({
   providedIn: 'root',
 })
+/**
+ * RegistrationDataService - Manages registration data state across components
+ * Uses BehaviorSubject for reactive data sharing between registration and edit-registration components
+ * Persists data during navigation and allows updates to individual info sections
+ */
 export class RegistrationDataService {
   private registrationDataSubject =
     new BehaviorSubject<RegistrationData | null>(null);
@@ -83,14 +90,30 @@ export class RegistrationDataService {
 
   constructor() {}
 
+  /**
+   * Save complete registration data to service
+   */
   saveRegistrationData(data: RegistrationData): void {
     this.registrationDataSubject.next(data);
   }
 
+  /**
+   * Get current registration data
+   */
   getRegistrationData(): RegistrationData | null {
     return this.registrationDataSubject.value;
   }
 
+  /**
+   * Get child ID from stored registration data
+   */
+  getChildId(): number | undefined {
+    return this.registrationDataSubject.value?.childId;
+  }
+
+  /**
+   * Clear stored registration data
+   */
   clearRegistrationData(): void {
     this.registrationDataSubject.next(null);
   }

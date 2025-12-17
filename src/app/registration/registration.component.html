@@ -1,4 +1,12 @@
 <div class="registration-container">
+  <!-- Success Snackbar -->
+  <div *ngIf="successMessage" class="snackbar snackbar-success">
+    <span>{{ successMessage }}</span>
+    <button type="button" class="snackbar-close" (click)="successMessage = ''">
+      Close
+    </button>
+  </div>
+
   <div class="registration-card">
     <div class="header-section">
       <h1 class="registration-heading">Registration Form</h1>
@@ -229,7 +237,7 @@
               type="text"
               formControlName="parentCountry"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
 
@@ -442,7 +450,7 @@
               type="text"
               formControlName="medicalCountry"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
 
@@ -580,22 +588,22 @@
         <h2 class="section-title">Care Facility Information</h2>
         <div class="form-row">
           <div class="form-group full-width">
-            <label for="careFacilityName" class="required"
-              >Care Facility Name</label
+            <label for="emergencyContactName" class="required"
+              >Emergency Contact Name</label
             >
             <input
-              id="careFacilityName"
+              id="emergencyContactName"
               type="text"
-              formControlName="careFacilityName"
+              formControlName="emergencyContactName"
               class="form-control"
-              placeholder="Enter care facility name"
-              [class.is-invalid]="isFieldInvalid('careFacilityName')"
+              placeholder="Enter emergency contact name"
+              [class.is-invalid]="isFieldInvalid('emergencyContactName')"
             />
             <div
-              *ngIf="isFieldInvalid('careFacilityName')"
+              *ngIf="isFieldInvalid('emergencyContactName')"
               class="error-message"
             >
-              Care facility name is required
+              Emergency contact name is required
             </div>
           </div>
         </div>
@@ -641,7 +649,7 @@
               type="text"
               formControlName="careFacilityCountry"
               class="form-control"
-              [attr.disabled]="true"
+              [disabled]="true"
             />
           </div>
 
@@ -728,27 +736,27 @@
           </div>
 
           <div class="form-group">
-            <label for="careFacilityPhoneNumber" class="required"
-              >Phone Number</label
+            <label for="emergencyPhoneNumber" class="required"
+              >Emergency Contact Phone Number</label
             >
             <div class="phone-input-wrapper">
               <span class="country-code">+1 (US)</span>
               <input
-                id="careFacilityPhoneNumber"
+                id="emergencyPhoneNumber"
                 type="text"
-                formControlName="careFacilityPhoneNumber"
+                formControlName="emergencyPhoneNumber"
                 class="form-control"
                 placeholder="(555) 555-5555"
                 maxlength="14"
-                (keypress)="onPhoneKeypress($event, 'careFacilityPhoneNumber')"
-                [class.is-invalid]="isFieldInvalid('careFacilityPhoneNumber')"
+                (keypress)="onPhoneKeypress($event, 'emergencyPhoneNumber')"
+                [class.is-invalid]="isFieldInvalid('emergencyPhoneNumber')"
               />
             </div>
             <div
-              *ngIf="isFieldInvalid('careFacilityPhoneNumber')"
+              *ngIf="isFieldInvalid('emergencyPhoneNumber')"
               class="error-message"
             >
-              Phone number must be 10 digits
+              Emergency contact phone number must be 10 digits
             </div>
           </div>
         </div>
@@ -798,6 +806,24 @@
           </div>
 
           <div class="form-group">
+            <label for="planType" class="required">Plan Type</label>
+            <select
+              id="planType"
+              formControlName="planType"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('planType')"
+            >
+              <option value="">Select Plan Type</option>
+              <option *ngFor="let option of planTypeOptions" [value]="option">
+                {{ option }}
+              </option>
+            </select>
+            <div *ngIf="isFieldInvalid('planType')" class="error-message">
+              Plan type is required
+            </div>
+          </div>
+
+          <div class="form-group">
             <label for="enrollmentDate" class="required">Enrollment Date</label>
             <input
               id="enrollmentDate"
@@ -817,6 +843,11 @@
       <!-- Error Message Alert -->
       <div *ngIf="errorMessage" class="error-message-alert">
         {{ errorMessage }}
+      </div>
+
+      <!-- Success Message Alert -->
+      <div *ngIf="successMessage" class="success-message-alert">
+        {{ successMessage }}
       </div>
 
       <!-- Action Buttons -->

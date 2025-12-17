@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes.js";
+import registrationRoutes from "./routes/registrationRoutes.js";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(express.json());
 
 // User authentication and user management routes
 app.use("/api", userRoutes);
+app.use("/api/registrations", registrationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

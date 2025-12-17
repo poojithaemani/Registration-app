@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
   FormBuilder,
   FormGroup,
   Validators,
+  FormsModule,
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidationService } from '../services/validation.service';
@@ -13,68 +14,130 @@ import {
   RegistrationDataService,
   RegistrationData,
 } from '../services/registration-data.service';
+import { ApiService } from '../services/api.service';
+import { AuthenticationService } from '../services/authentication.service';
+import { NotificationService } from '../services/notification.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
-/**
- * EditRegistrationComponent displays and allows editing of registered student information
- * Features:
- * - Read-only display mode showing all registered data
- * - Edit mode allowing modification of all fields except enrollment program details
- * - Toggle between view and edit modes
- * - Save changes back to service or cancel modifications
- * - Enrollment Program Details remain permanently read-only for data integrity
- */
 @Component({
   selector: 'app-edit-registration',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './edit-registration.component.html',
   styleUrl: './edit-registration.component.css',
 })
-export class EditRegistrationComponent implements OnInit {
-  registrationForm!: FormGroup; // Reactive form for registration data
-  registrationData: RegistrationData | null = null; // Stores loaded registration data
-  isEditMode = false; // Tracks whether form is in edit or view mode
-  submitted = false; // Tracks if form has been submitted for validation display
-  errorMessage = ''; // Stores form-level error messages
-  usStates: USState[] = []; // List of US states for dropdown selection
+/**
+ * EditRegistrationComponent - View and edit student registration information
+ *
+ * Features:
+ * - Display all student registration data from the service
+ * - Edit mode to allow field modifications (except enrollment details)
+ * - Search and highlight functionality to find specific fields
+ * - Save changes to backend API or cancel to revert
+ * - Form validation matching registration component rules
+ * - Auto-populate from stored registration data or redirect to login
+ */
+export class EditRegistrationComponent implements OnInit, OnDestroy {
+  registrationForm!: FormGroup;
+  registrationData: RegistrationData | null = null;
+  originalFormData: any = null;
+  isEditMode = false;
+  submitted = false;
+  errorMessage = '';
+  successMessage = '';
+  usStates: USState[] = [];
+  searchTerm = '';
+  highlightedFields: Set<string> = new Set();
+  loading = true;
 
-  // Dropdown options for form fields
   phoneTypeOptions = ['Cell', 'Home', 'Work', 'Other'];
   relationshipOptions = ['Father', 'Mother', 'Guardian'];
   genderOptions = ['Male', 'Female', 'Other'];
 
+  /** Maps database program type IDs to string values */
+  programTypeReverseMapping: { [key: number]: string } = {
+    1: 'fullTime',
+    2: 'schoolDay',
+    3: 'threeDayProgram',
+    4: 'halfDayProgram',
+  };
+
+  /** Maps database room type IDs to string values */
+  roomTypeReverseMapping: { [key: number]: string } = {
+    1: 'infant',
+    2: 'toddler',
+    3: 'primary',
+  };
+
   minDateOfBirth = new Date(2000, 0, 1);
   todayDate = new Date();
+  childId: number | null = null;
 
+  private destroy$ = new Subject<void>();
+
+  /**
+   * Component constructor - initializes services and loads US states dropdown
+   * @param formBuilder - Angular FormBuilder for reactive form creation
+   * @param router - Angular Router for navigation
+   * @param validationService - Service for form field validation
+   * @param usStatesService - Service providing US states list
+   * @param registrationDataService - Service managing registration data state
+   * @param apiService - Service for backend API communication
+   * @param authService - Service for authentication and user data
+   * @param notificationService - Service for displaying notifications/logs
+   */
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
     private validationService: ValidationService,
     private usStatesService: USStatesService,
-    private registrationDataService: RegistrationDataService
+    private registrationDataService: RegistrationDataService,
+    private apiService: ApiService,
+    private authService: AuthenticationService,
+    private notificationService: NotificationService
   ) {
     this.usStates = this.usStatesService.getAllStates();
   }
 
   /**
-   * Angular lifecycle hook - initializes component
-   * Loads registration data from service and builds form
+   * Angular lifecycle hook - called after component initialization
+   * Triggers loading of registration data from service
    */
   ngOnInit(): void {
     this.loadRegistrationData();
-    this.initializeForm();
   }
 
   /**
-   * Retrieves registration data from service
-   * Redirects to login if no data is found (user accessed page directly)
+   * Angular lifecycle hook - called before component destruction
+   * Completes the destroy$ subject to unsubscribe from all observables
+   * Prevents memory leaks from active subscriptions
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Load registration data from RegistrationDataService
+   * If data is not available, redirects user to login page
+   * Sets loading state and initializes form once data is loaded
+   *
    */
   loadRegistrationData(): void {
     this.registrationData = this.registrationDataService.getRegistrationData();
-    if (!this.registrationData) {
+
+    if (this.registrationData && this.registrationData.childInfo) {
+      this.initializeForm();
+      this.loading = false;
+    } else {
+      // Try to fetch from API if available
       this.router.navigate(['/login']);
     }
   }
 
+  /**
+   * Initialize the reactive form with all fields
+   */
   initializeForm(): void {
     if (!this.registrationData) {
       this.router.navigate(['/login']);
@@ -82,6 +145,9 @@ export class EditRegistrationComponent implements OnInit {
     }
 
     const data = this.registrationData;
+
+    // Store child ID for API updates
+    this.childId = this.registrationData.childId || null;
 
     this.registrationForm = this.formBuilder.group({
       // Child Info
@@ -142,7 +208,10 @@ export class EditRegistrationComponent implements OnInit {
         { value: data.parentGuardianInfo.address2, disabled: !this.isEditMode },
       ],
       parentCountry: [
-        { value: data.parentGuardianInfo.country, disabled: true },
+        {
+          value: data.parentGuardianInfo.country || 'United States',
+          disabled: true,
+        },
       ],
       parentState: [
         { value: data.parentGuardianInfo.state, disabled: !this.isEditMode },
@@ -209,7 +278,9 @@ export class EditRegistrationComponent implements OnInit {
       medicalAddress2: [
         { value: data.medicalInfo.address2, disabled: !this.isEditMode },
       ],
-      medicalCountry: [{ value: data.medicalInfo.country, disabled: true }],
+      medicalCountry: [
+        { value: data.medicalInfo.country || 'United States', disabled: true },
+      ],
       medicalState: [
         { value: data.medicalInfo.state, disabled: !this.isEditMode },
         Validators.required,
@@ -244,8 +315,11 @@ export class EditRegistrationComponent implements OnInit {
       ],
 
       // Care Facility Info
-      careFacilityName: [
-        { value: data.careFacilityInfo.name, disabled: !this.isEditMode },
+      emergencyContactName: [
+        {
+          value: data.careFacilityInfo.emergencyContactName,
+          disabled: !this.isEditMode,
+        },
         Validators.required,
       ],
       careFacilityAddress1: [
@@ -256,7 +330,10 @@ export class EditRegistrationComponent implements OnInit {
         { value: data.careFacilityInfo.address2, disabled: !this.isEditMode },
       ],
       careFacilityCountry: [
-        { value: data.careFacilityInfo.country, disabled: true },
+        {
+          value: data.careFacilityInfo.country || 'United States',
+          disabled: true,
+        },
       ],
       careFacilityState: [
         { value: data.careFacilityInfo.state, disabled: !this.isEditMode },
@@ -274,9 +351,9 @@ export class EditRegistrationComponent implements OnInit {
         { value: data.careFacilityInfo.phoneType, disabled: !this.isEditMode },
         Validators.required,
       ],
-      careFacilityPhoneNumber: [
+      emergencyPhoneNumber: [
         {
-          value: data.careFacilityInfo.phoneNumber,
+          value: data.careFacilityInfo.emergencyPhoneNumber,
           disabled: !this.isEditMode,
         },
         Validators.required,
@@ -284,28 +361,39 @@ export class EditRegistrationComponent implements OnInit {
 
       // Enrollment Program Details (Read-only)
       programType: [
-        { value: data.enrollmentProgramDetails.programType, disabled: true },
+        {
+          value: this.getProgramTypeDisplay(
+            data.enrollmentProgramDetails.programType
+          ),
+          disabled: true,
+        },
       ],
       roomType: [
-        { value: data.enrollmentProgramDetails.roomType, disabled: true },
+        {
+          value: this.getRoomTypeDisplay(
+            data.enrollmentProgramDetails.roomType
+          ),
+          disabled: true,
+        },
       ],
       enrollmentDate: [
         { value: data.enrollmentProgramDetails.enrollmentDate, disabled: true },
       ],
     });
+
+    // Store original form data for cancel functionality
+    this.originalFormData = this.registrationForm.getRawValue();
   }
 
   /**
-   * Enables edit mode for the registration form
-   * Activates all form fields except Enrollment Program Details (which remain read-only)
-   * Resets submitted flag and error messages
+   * Enable edit mode - allows user to modify registration fields
+   * Called when user clicks "Edit Details" button
    */
   enableEditMode(): void {
     this.isEditMode = true;
     this.submitted = false;
     this.errorMessage = '';
 
-    // Enable all fields except Enrollment Program Details
     const fieldsToEnable = [
       'childFirstName',
       'childMiddleName',
@@ -338,14 +426,14 @@ export class EditRegistrationComponent implements OnInit {
       'medicalPhoneNumber',
       'medicalAlternatePhoneType',
       'medicalAlternatePhoneNumber',
-      'careFacilityName',
+      'emergencyContactName',
       'careFacilityAddress1',
       'careFacilityAddress2',
       'careFacilityState',
       'careFacilityCity',
       'careFacilityZipCode',
       'careFacilityPhoneType',
-      'careFacilityPhoneNumber',
+      'emergencyPhoneNumber',
     ];
 
     fieldsToEnable.forEach((fieldName) => {
@@ -354,17 +442,18 @@ export class EditRegistrationComponent implements OnInit {
         control.enable();
       }
     });
+
+    this.highlightedFields.clear();
   }
 
   /**
-   * Disables edit mode and returns form to read-only display
-   * Disables all editable fields while keeping Enrollment Program Details disabled
-   * Resets form validation state
+   * Disable edit mode
    */
   disableEditMode(): void {
     this.isEditMode = false;
     this.submitted = false;
     this.errorMessage = '';
+    this.successMessage = '';
 
     const fieldsToDisable = [
       'childFirstName',
@@ -398,14 +487,14 @@ export class EditRegistrationComponent implements OnInit {
       'medicalPhoneNumber',
       'medicalAlternatePhoneType',
       'medicalAlternatePhoneNumber',
-      'careFacilityName',
+      'emergencyContactName',
       'careFacilityAddress1',
       'careFacilityAddress2',
       'careFacilityState',
       'careFacilityCity',
       'careFacilityZipCode',
       'careFacilityPhoneType',
-      'careFacilityPhoneNumber',
+      'emergencyPhoneNumber',
     ];
 
     fieldsToDisable.forEach((fieldName) => {
@@ -414,8 +503,13 @@ export class EditRegistrationComponent implements OnInit {
         control.disable();
       }
     });
+
+    this.highlightedFields.clear();
   }
 
+  /**
+   * Format phone number
+   */
   formatPhoneNumber(phoneNumber: string): string {
     const digitsOnly = phoneNumber.replace(/\D/g, '');
     if (digitsOnly.length === 10) {
@@ -428,16 +522,103 @@ export class EditRegistrationComponent implements OnInit {
   }
 
   /**
-   * Handles saving changes to registration data
-   * Validates all required fields and phone numbers
-   * Formats phone numbers and collects updated data
-   * Saves to service, disables edit mode, and shows success message
+   * Convert program type ID or string to display value
+   * Handles both numeric IDs from database and string values from form
+   */
+  getProgramTypeDisplay(value: any): string {
+    if (!value) return '';
+    // If it's already a string like "fullTime", return as-is
+    if (typeof value === 'string') {
+      return value;
+    }
+    // If it's a number, use the mapping
+    return this.programTypeReverseMapping[value] || '';
+  }
+
+  /**
+   * Convert room type ID or string to display value
+   * Handles both numeric IDs from database and string values from form
+   */
+  getRoomTypeDisplay(value: any): string {
+    if (!value) return '';
+    // If it's already a string like "infant", return as-is
+    if (typeof value === 'string') {
+      return value;
+    }
+    // If it's a number, use the mapping
+    return this.roomTypeReverseMapping[value] || '';
+  }
+
+  /**
+   * Handle search functionality
+   */
+  onSearch(term: string): void {
+    this.searchTerm = term.toLowerCase();
+    this.highlightedFields.clear();
+
+    if (this.searchTerm.length > 0) {
+      const allValues = this.registrationForm.getRawValue();
+      Object.keys(allValues).forEach((key) => {
+        const value = String(allValues[key]).toLowerCase();
+        if (value.includes(this.searchTerm)) {
+          this.highlightedFields.add(key);
+        }
+      });
+    }
+  }
+
+  /**
+   * Check if a field should be highlighted
+   */
+  isHighlighted(fieldName: string): boolean {
+    return this.highlightedFields.has(fieldName);
+  }
+
+  /**
+   * Check if field is invalid for display
+   */
+  isFieldInvalid(fieldName: string): boolean {
+    const field = this.registrationForm.get(fieldName);
+    return !!(
+      this.isEditMode &&
+      field &&
+      field.invalid &&
+      (field.dirty || field.touched || this.submitted) &&
+      field.enabled
+    );
+  }
+
+  /**
+   * Handle phone keypress
+   */
+  onPhoneKeypress(event: KeyboardEvent, fieldName: string): void {
+    const input = event.target as HTMLInputElement;
+    const digitsOnly = input.value.replace(/\D/g, '');
+
+    if (!/\d/.test(event.key)) {
+      event.preventDefault();
+      return;
+    }
+
+    if (digitsOnly.length >= 10) {
+      event.preventDefault();
+      return;
+    }
+  }
+
+  /**
+   * Save registration changes to backend API
+   * Backend transaction:
+   * - Updates 4 database tables: children, parentguardians, medicalcontacts, carefacilities
    */
   onSaveChanges(): void {
+    if (!this.isEditMode) {
+      return;
+    }
+
     this.submitted = true;
     this.errorMessage = '';
 
-    // Validate required fields
     const requiredFields = [
       'childFirstName',
       'childLastName',
@@ -462,13 +643,13 @@ export class EditRegistrationComponent implements OnInit {
       'medicalZipCode',
       'medicalPhoneType',
       'medicalPhoneNumber',
-      'careFacilityName',
+      'emergencyContactName',
       'careFacilityAddress1',
       'careFacilityState',
       'careFacilityCity',
       'careFacilityZipCode',
       'careFacilityPhoneType',
-      'careFacilityPhoneNumber',
+      'emergencyPhoneNumber',
     ];
 
     let allFieldsValid = true;
@@ -506,10 +687,10 @@ export class EditRegistrationComponent implements OnInit {
 
     if (
       !this.validationService.isValidPhoneNumber(
-        this.registrationForm.get('careFacilityPhoneNumber')?.value
+        this.registrationForm.get('emergencyPhoneNumber')?.value
       )
     ) {
-      this.errorMessage = 'Care facility phone number must be 10 digits';
+      this.errorMessage = 'Emergency contact phone number must be 10 digits';
       return;
     }
 
@@ -572,7 +753,11 @@ export class EditRegistrationComponent implements OnInit {
       };
 
       this.registrationData.careFacilityInfo = {
-        name: this.registrationForm.get('careFacilityName')?.value,
+        emergencyContactName: this.registrationForm.get('emergencyContactName')
+          ?.value,
+        emergencyPhoneNumber: this.formatPhoneNumber(
+          this.registrationForm.get('emergencyPhoneNumber')?.value
+        ),
         address1: this.registrationForm.get('careFacilityAddress1')?.value,
         address2: this.registrationForm.get('careFacilityAddress2')?.value,
         country: this.registrationForm.get('careFacilityCountry')?.value,
@@ -580,69 +765,55 @@ export class EditRegistrationComponent implements OnInit {
         city: this.registrationForm.get('careFacilityCity')?.value,
         zipCode: this.registrationForm.get('careFacilityZipCode')?.value,
         phoneType: this.registrationForm.get('careFacilityPhoneType')?.value,
-        phoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('careFacilityPhoneNumber')?.value
-        ),
       };
 
-      this.registrationDataService.saveRegistrationData(this.registrationData);
-      this.disableEditMode();
-      this.errorMessage = 'Changes saved successfully!';
+      const studentId = this.authService.getUserId();
+      if (!studentId) {
+        this.errorMessage = 'User not logged in. Cannot save changes.';
+        return;
+      }
+
+      const registrationData = this.registrationData;
+
+      // Get childId from registration data or auth service
+      const childId = registrationData?.childId || this.authService.getUserId();
+      if (!childId) {
+        this.errorMessage = 'Child ID not found. Cannot save changes.';
+        return;
+      }
+
+      this.apiService.updateRegistration(childId, registrationData).subscribe({
+        next: () => {
+          this.registrationDataService.saveRegistrationData(registrationData);
+          this.notificationService.success('Saved Changes Successfully!');
+          this.successMessage = 'Saved Changes Successfully!';
+          this.originalFormData = this.registrationForm.getRawValue();
+          setTimeout(() => {
+            this.disableEditMode();
+            this.successMessage = '';
+          }, 2000);
+        },
+        error: (error: any) => {
+          console.error('Update registration failed:', error);
+          this.errorMessage = 'Failed to save changes. Please try again later.';
+          this.notificationService.error('Failed to save changes');
+        },
+      });
     }
   }
 
   /**
-   * Handles cancel action - reverts form to last saved state
-   * Resets form data and disables edit mode
+   * Cancel edit mode
    */
   onCancel(): void {
+    if (this.originalFormData) {
+      this.registrationForm.reset(this.originalFormData);
+    }
     this.disableEditMode();
-    this.initializeForm();
   }
 
   /**
-   * Checks if a form field should display error messages
-   * Shows errors when field is invalid, enabled, and has been touched/dirty/submitted
-   * Differs from registration component by also checking field.enabled
-   * @param {string} fieldName - The name of the form field to check
-   * @returns {boolean} True if field has validation errors that should be displayed
-   */
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.registrationForm.get(fieldName);
-    return !!(
-      field &&
-      field.invalid &&
-      (field.dirty || field.touched || this.submitted) &&
-      field.enabled
-    );
-  }
-
-  /**
-   * Restricts phone number input to digits only and enforces 10-digit maximum
-   * Prevents entry of letters and special characters via keypress event
-   * @param {KeyboardEvent} event - The keyboard event from the input field
-   * @param {string} fieldName - The name of the phone field being edited
-   */
-  onPhoneKeypress(event: KeyboardEvent, fieldName: string): void {
-    const input = event.target as HTMLInputElement;
-    const digitsOnly = input.value.replace(/\D/g, '');
-
-    // Allow only digits
-    if (!/\d/.test(event.key)) {
-      event.preventDefault();
-      return;
-    }
-
-    // Prevent more than 10 digits
-    if (digitsOnly.length >= 10) {
-      event.preventDefault();
-      return;
-    }
-  }
-
-  /**
-   * Navigates user back to login page
-   * Called when user clicks "Back to Login" link
+   * Navigate to login
    */
   navigateToLogin(): void {
     this.router.navigate(['/login']);

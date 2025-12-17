@@ -3,6 +3,10 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
+/**
+ * ValidationService - Regex-based field validation rules
+ * Provides validators for names, emails, phones, addresses, dates, zip codes
+ */
 export class ValidationService {
   private readonly nameRegex = /^(?=.*[a-zA-ZÀ-ÿ'])[a-zA-ZÀ-ÿ' ]{1,30}$/;
   private readonly phoneRegex = /^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;

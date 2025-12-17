@@ -13,7 +13,8 @@ import {
   RegistrationDataService,
   RegistrationData,
 } from '../services/registration-data.service';
-
+import { ApiService } from '../services/api.service';
+import { NotificationService } from '../services/notification.service';
 /**
  * RegistrationComponent handles the multi-step student registration form
  * Collects comprehensive information across 5 sections:
@@ -36,33 +37,53 @@ export class RegistrationComponent implements OnInit {
   registrationForm!: FormGroup; // Reactive form for registration data
   submitted = false; // Tracks if form has been submitted for validation display
   errorMessage = ''; // Stores form-level error messages
+  successMessage = ''; // Stores success messages
   usStates: USState[] = []; // List of US states for dropdown selection
 
-  // Dropdown options for form fields
+  // Dropdown options for form field selections
   phoneTypeOptions = ['Cell', 'Home', 'Work', 'Other'];
   programTypeOptions = [
-    'Full Time',
-    'School Day',
-    'Three Day Program',
-    'Half Day Program',
+    'fullTime',
+    'schoolDay',
+    'threeDayProgram',
+    'halfDayProgram',
   ];
-  roomTypeOptions = ['Infant', 'Toddler', 'Primary'];
+  roomTypeOptions = ['infant', 'toddler', 'primary'];
   relationshipOptions = ['Father', 'Mother', 'Guardian'];
-  genderOptions = ['Male', 'Female', 'Other'];
+  genderOptions = ['Male', 'Female'];
+  planTypeOptions = ['monthly', 'quarterly', 'bi-annual', 'annual'];
 
   minDateOfBirth = new Date(2000, 0, 1);
+
+  /** Today's date for validation */
   todayDate = new Date();
 
+  /**
+   * Component constructor - initializes services
+   * @param formBuilder - Angular FormBuilder for reactive form creation
+   * @param router - Angular Router for navigation
+   * @param validationService - Service for form field validation rules
+   * @param usStatesService - Service providing US states list
+   * @param registrationDataService - Service for persisting registration data across routes
+   * @param apiService - Service for backend API communication
+   * @param notificationService - Service for displaying notifications/logs
+   */
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
     private validationService: ValidationService,
     private usStatesService: USStatesService,
-    private registrationDataService: RegistrationDataService
+    private registrationDataService: RegistrationDataService,
+    private apiService: ApiService,
+    private notificationService: NotificationService
   ) {
     this.usStates = this.usStatesService.getAllStates();
   }
 
+  /**
+   * Angular lifecycle hook - called after component initialization
+   * Triggers form creation
+   */
   ngOnInit(): void {
     this.initializeForm();
   }
@@ -89,7 +110,10 @@ export class RegistrationComponent implements OnInit {
       relationship: ['', Validators.required],
       parentAddress1: ['', Validators.required],
       parentAddress2: [''],
-      parentCountry: ['United States', Validators.required],
+      parentCountry: [
+        { value: 'United States', disabled: true },
+        Validators.required,
+      ],
       parentState: ['', Validators.required],
       parentCity: ['', Validators.required],
       parentZipCode: ['', Validators.required],
@@ -104,7 +128,10 @@ export class RegistrationComponent implements OnInit {
       physicianLastName: ['', Validators.required],
       medicalAddress1: ['', Validators.required],
       medicalAddress2: [''],
-      medicalCountry: ['United States', Validators.required],
+      medicalCountry: [
+        { value: 'United States', disabled: true },
+        Validators.required,
+      ],
       medicalState: ['', Validators.required],
       medicalCity: ['', Validators.required],
       medicalZipCode: ['', Validators.required],
@@ -114,19 +141,23 @@ export class RegistrationComponent implements OnInit {
       medicalAlternatePhoneNumber: [''],
 
       // Care Facility Info
-      careFacilityName: ['', Validators.required],
+      emergencyContactName: ['', Validators.required],
       careFacilityAddress1: ['', Validators.required],
       careFacilityAddress2: [''],
-      careFacilityCountry: ['United States', Validators.required],
+      careFacilityCountry: [
+        { value: 'United States', disabled: true },
+        Validators.required,
+      ],
       careFacilityState: ['', Validators.required],
       careFacilityCity: ['', Validators.required],
       careFacilityZipCode: ['', Validators.required],
       careFacilityPhoneType: ['', Validators.required],
-      careFacilityPhoneNumber: ['', Validators.required],
+      emergencyPhoneNumber: ['', Validators.required],
 
       // Enrollment Program Details
       programType: ['', Validators.required],
       roomType: ['', Validators.required],
+      planType: ['', Validators.required],
       enrollmentDate: [this.getTodayDate(), Validators.required],
     });
   }
@@ -217,15 +248,16 @@ export class RegistrationComponent implements OnInit {
       'medicalZipCode',
       'medicalPhoneType',
       'medicalPhoneNumber',
-      'careFacilityName',
+      'emergencyContactName',
       'careFacilityAddress1',
       'careFacilityState',
       'careFacilityCity',
       'careFacilityZipCode',
       'careFacilityPhoneType',
-      'careFacilityPhoneNumber',
+      'emergencyPhoneNumber',
       'programType',
       'roomType',
+      'planType',
       'enrollmentDate',
     ];
 
@@ -265,10 +297,10 @@ export class RegistrationComponent implements OnInit {
 
     if (
       !this.validationService.isValidPhoneNumber(
-        this.registrationForm.get('careFacilityPhoneNumber')?.value
+        this.registrationForm.get('emergencyPhoneNumber')?.value
       )
     ) {
-      this.errorMessage = 'Care facility phone number must be 10 digits';
+      this.errorMessage = 'Emergency contact phone number must be 10 digits';
       return;
     }
 
@@ -296,7 +328,8 @@ export class RegistrationComponent implements OnInit {
     }
 
     // Save registration data
-    const registrationData: RegistrationData = {
+    const registrationData: any = {
+      email: this.registrationForm.get('parentEmail')?.value,
       childInfo: {
         firstName: this.registrationForm.get('childFirstName')?.value,
         middleName: this.registrationForm.get('childMiddleName')?.value,
@@ -351,7 +384,11 @@ export class RegistrationComponent implements OnInit {
         )?.value,
       },
       careFacilityInfo: {
-        name: this.registrationForm.get('careFacilityName')?.value,
+        emergencyContactName: this.registrationForm.get('emergencyContactName')
+          ?.value,
+        emergencyPhoneNumber: this.formatPhoneNumber(
+          this.registrationForm.get('emergencyPhoneNumber')?.value
+        ),
         address1: this.registrationForm.get('careFacilityAddress1')?.value,
         address2: this.registrationForm.get('careFacilityAddress2')?.value,
         country: this.registrationForm.get('careFacilityCountry')?.value,
@@ -359,9 +396,6 @@ export class RegistrationComponent implements OnInit {
         city: this.registrationForm.get('careFacilityCity')?.value,
         zipCode: this.registrationForm.get('careFacilityZipCode')?.value,
         phoneType: this.registrationForm.get('careFacilityPhoneType')?.value,
-        phoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('careFacilityPhoneNumber')?.value
-        ),
       },
       enrollmentProgramDetails: {
         schoolDay: '',
@@ -369,12 +403,40 @@ export class RegistrationComponent implements OnInit {
         programType: this.registrationForm.get('programType')?.value,
         enrollmentDate: this.registrationForm.get('enrollmentDate')?.value,
         roomType: this.registrationForm.get('roomType')?.value,
+        planType: this.registrationForm.get('planType')?.value,
         nextPaymentDue: new Date(),
       },
     };
-
-    this.registrationDataService.saveRegistrationData(registrationData);
-    this.router.navigate(['/edit-registration']);
+    this.apiService.registerStudent(registrationData).subscribe({
+      next: (response) => {
+        // Save the registration data (both response and local data for backup)
+        const dataToSave: any = {
+          ...response,
+          // Fallback to local data structure if response doesn't have all fields
+          childInfo: response.childInfo || registrationData.childInfo,
+          parentGuardianInfo:
+            response.parentGuardianInfo || registrationData.parentGuardianInfo,
+          medicalInfo: response.medicalInfo || registrationData.medicalInfo,
+          careFacilityInfo:
+            response.careFacilityInfo || registrationData.careFacilityInfo,
+          enrollmentProgramDetails:
+            response.enrollmentProgramDetails ||
+            registrationData.enrollmentProgramDetails,
+        };
+        this.registrationDataService.saveRegistrationData(dataToSave);
+        this.notificationService.success('Registration Saved Successfully!');
+        this.successMessage = 'Registration Saved Successfully!';
+        // Navigate after 3 seconds to show the snackbar message
+        setTimeout(() => {
+          this.successMessage = '';
+          this.router.navigate(['/edit-registration']);
+        }, 3000);
+      },
+      error: (err) => {
+        this.errorMessage = 'Registration failed';
+        this.notificationService.error('Registration failed');
+      },
+    });
   }
 
   /**
