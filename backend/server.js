@@ -9,42 +9,22 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// =======================
 // Middleware
-// =======================
-
-// Enable CORS (Netlify + Local)
-app.use(cors());
-
-// Parse JSON requests
+// Enable CORS for frontend on port 4200
+const corsOptions = {
+  origin: "http://localhost:4200",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
-// =======================
-// Health Check
-// =======================
-
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Backend is live 🚀",
-  });
-});
-
-// =======================
-// Routes
-// =======================
-
-// User authentication & user management
+// User authentication and user management routes
 app.use("/api", userRoutes);
-
-// Registration routes
 app.use("/api/registrations", registrationRoutes);
 
-// =======================
-// Error Handling
-// =======================
-
-// Central error handler
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error("Server Error:", err.message);
   res.status(500).json({
@@ -61,10 +41,6 @@ app.use((req, res) => {
   });
 });
 
-// =======================
-// Start Server
-// =======================
-
 app.listen(PORT, () => {
-  console.log(`✅ Backend running on port ${PORT}`);
+  console.log(`✅ Backend running on http://localhost:${PORT}`);
 });
