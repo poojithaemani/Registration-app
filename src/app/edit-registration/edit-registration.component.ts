@@ -724,9 +724,9 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         alternatePhoneType: this.registrationForm.get(
           'parentAlternatePhoneType'
         )?.value,
-        alternatePhoneNumber: this.registrationForm.get(
-          'parentAlternatePhoneNumber'
-        )?.value,
+        alternatePhoneNumber: this.formatPhoneNumber(
+          this.registrationForm.get('parentAlternatePhoneNumber')?.value
+        ),
       };
 
       this.registrationData.medicalInfo = {
@@ -747,9 +747,9 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         alternatePhoneType: this.registrationForm.get(
           'medicalAlternatePhoneType'
         )?.value,
-        alternatePhoneNumber: this.registrationForm.get(
-          'medicalAlternatePhoneNumber'
-        )?.value,
+        alternatePhoneNumber: this.formatPhoneNumber(
+          this.registrationForm.get('medicalAlternatePhoneNumber')?.value
+        ),
       };
 
       this.registrationData.careFacilityInfo = {

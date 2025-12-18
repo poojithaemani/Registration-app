@@ -59,8 +59,9 @@ export const createRegistration = async (req, res) => {
       `
       INSERT INTO guardians
       (firstname, middlename, lastname, emailaddress, addressline1, addressline2,
-       city, state, country, zipcode, phonetype, phonenumber, countrycode)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       city, state, country, zipcode, phonetype, phonenumber, alternatephonetype,
+       alternatenumber, countrycode)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       RETURNING guardianid
       `,
       [
@@ -76,6 +77,8 @@ export const createRegistration = async (req, res) => {
         parentGuardianInfo.zipCode,
         parentGuardianInfo.phoneType,
         parentGuardianInfo.phoneNumber,
+        parentGuardianInfo.alternatePhoneType || null,
+        parentGuardianInfo.alternatePhoneNumber || null,
         "+1",
       ]
     );
@@ -239,23 +242,34 @@ export const createRegistration = async (req, res) => {
 export const getRegistrationByChildId = async (req, res) => {
   const { childId } = req.params;
 
-  const result = await pool.query(
-    `
-    SELECT *
-    FROM children c
-    LEFT JOIN medicalcontacts m ON m.childid = c.childid
-    LEFT JOIN carefacilities cf ON cf.childid = c.childid
-    WHERE c.childid = $1
-    `,
-    [childId]
-  );
+  try {
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM children c
+      LEFT JOIN medicalcontacts m ON m.childid = c.childid
+      LEFT JOIN carefacilities cf ON cf.childid = c.childid
+      LEFT JOIN child_guardians cg ON cg.childid = c.childid
+      LEFT JOIN guardians g ON g.guardianid = cg.guardianid
+      WHERE c.childid = $1
+      `,
+      [childId]
+    );
 
-  res.json(result.rows[0]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Registration not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("❌ Failed to fetch registration:", err.message);
+    res.status(500).json({ error: err.message });
+  }
 };
 
 /**
  * UPDATE REGISTRATION - Multi-table transaction
- * Updates child, parent guardian, medical contact, care facility records
+ * Updates child, guardian, medical contact, care facility records
  * Supports partial updates - only provided sections are updated
  * Uses transaction with rollback on error
  */
@@ -296,33 +310,63 @@ export const updateRegistration = async (req, res) => {
 
     // Update parent/guardian info
     if (parentGuardianInfo) {
+      // Get the guardian ID for this child
+      const guardianRes = await client.query(
+        `
+        SELECT g.guardianid
+        FROM guardians g
+        INNER JOIN child_guardians cg ON g.guardianid = cg.guardianid
+        WHERE cg.childid = $1
+        LIMIT 1
+        `,
+        [childId]
+      );
+
+      if (guardianRes.rows.length === 0) {
+        throw new Error("Guardian not found for this child");
+      }
+
+      const guardianId = guardianRes.rows[0].guardianid;
+
+      // Update guardian info
       await client.query(
         `
-        UPDATE parentguardians
-        SET firstname=$1, middlename=$2, lastname=$3, relationship=$4, addressline1=$5, addressline2=$6,
-            city=$7, state=$8, country=$9, zipcode=$10, email=$11, phonetype=$12, phonenumber=$13,
-            alternativephonetype=$14, alternativephonenumber=$15
-        WHERE childid=$16
+        UPDATE guardians
+        SET firstname=$1, middlename=$2, lastname=$3, emailaddress=$4, addressline1=$5, addressline2=$6,
+            city=$7, state=$8, country=$9, zipcode=$10, phonetype=$11, phonenumber=$12,
+            alternatephonetype=$13, alternatenumber=$14
+        WHERE guardianid=$15
         `,
         [
           parentGuardianInfo.firstName,
           parentGuardianInfo.middleName,
           parentGuardianInfo.lastName,
-          parentGuardianInfo.relationship,
+          parentGuardianInfo.email,
           parentGuardianInfo.address1,
           parentGuardianInfo.address2,
           parentGuardianInfo.city,
           parentGuardianInfo.state,
           parentGuardianInfo.country,
           parentGuardianInfo.zipCode,
-          parentGuardianInfo.email,
           parentGuardianInfo.phoneType,
           parentGuardianInfo.phoneNumber,
-          parentGuardianInfo.alternatePhoneType,
-          parentGuardianInfo.alternatePhoneNumber,
-          childId,
+          parentGuardianInfo.alternatePhoneType || null,
+          parentGuardianInfo.alternatePhoneNumber || null,
+          guardianId,
         ]
       );
+
+      // Update relationship in child_guardians mapping table if provided
+      if (parentGuardianInfo.relationship) {
+        await client.query(
+          `
+          UPDATE child_guardians
+          SET relationtype=$1
+          WHERE childid=$2 AND guardianid=$3
+          `,
+          [parentGuardianInfo.relationship, childId, guardianId]
+        );
+      }
     }
 
     // Update medical info
@@ -330,13 +374,12 @@ export const updateRegistration = async (req, res) => {
       await client.query(
         `
         UPDATE medicalcontacts
-        SET firstname=$1, lastname=$2, addressline1=$3, addressline2=$4, city=$5, state=$6, country=$7,
-            zipcode=$8, phonetype=$9, phonenumber=$10, alternativephonetype=$11, alternativephonenumber=$12
-        WHERE childid=$13
+        SET physicianname=$1, addressline1=$2, addressline2=$3, city=$4, state=$5, country=$6,
+            zipcode=$7, phonetype=$8, phonenumber=$9
+        WHERE childid=$10
         `,
         [
-          medicalInfo.physicianFirstName,
-          medicalInfo.physicianLastName,
+          `${medicalInfo.physicianFirstName} ${medicalInfo.physicianLastName}`,
           medicalInfo.address1,
           medicalInfo.address2,
           medicalInfo.city,
@@ -345,8 +388,6 @@ export const updateRegistration = async (req, res) => {
           medicalInfo.zipCode,
           medicalInfo.phoneType,
           medicalInfo.phoneNumber,
-          medicalInfo.alternatePhoneType,
-          medicalInfo.alternatePhoneNumber,
           childId,
         ]
       );

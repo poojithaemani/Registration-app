@@ -357,9 +357,9 @@ export class RegistrationComponent implements OnInit {
         alternatePhoneType: this.registrationForm.get(
           'parentAlternatePhoneType'
         )?.value,
-        alternatePhoneNumber: this.registrationForm.get(
-          'parentAlternatePhoneNumber'
-        )?.value,
+        alternatePhoneNumber: this.formatPhoneNumber(
+          this.registrationForm.get('parentAlternatePhoneNumber')?.value
+        ),
       },
       medicalInfo: {
         physicianFirstName:
@@ -379,9 +379,9 @@ export class RegistrationComponent implements OnInit {
         alternatePhoneType: this.registrationForm.get(
           'medicalAlternatePhoneType'
         )?.value,
-        alternatePhoneNumber: this.registrationForm.get(
-          'medicalAlternatePhoneNumber'
-        )?.value,
+        alternatePhoneNumber: this.formatPhoneNumber(
+          this.registrationForm.get('medicalAlternatePhoneNumber')?.value
+        ),
       },
       careFacilityInfo: {
         emergencyContactName: this.registrationForm.get('emergencyContactName')
