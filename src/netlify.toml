@@ -1,8 +1,12 @@
 [build]
   command = "npm run build"
-  publish = "dist/registration-app"
+  publish = "dist/registration-app/browser"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[plugins]]
+  package = "@netlify/angular-runtime"
+  enabled = false
