@@ -77,8 +77,8 @@ export class LoginComponent {
         this.isLoading = false;
 
         if (response.success) {
-          // Navigate to registration on successful login
-          this.router.navigate(['/registration']);
+          // Navigate to students on successful login
+          this.router.navigate(['/students']);
         } else {
           this.errorMessage = response.message || 'Login failed';
         }

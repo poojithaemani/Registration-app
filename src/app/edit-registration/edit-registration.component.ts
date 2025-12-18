@@ -813,9 +813,9 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Navigate to login
+   * Navigate to students
    */
-  navigateToLogin(): void {
-    this.router.navigate(['/login']);
+  navigateToStudents(): void {
+    this.router.navigate(['/students']);
   }
 }

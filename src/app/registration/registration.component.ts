@@ -490,10 +490,10 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
-   * Navigates user back to login page
-   * Called when user clicks "Back to Login" link
+   * Navigates user to students page
+   * Called when user clicks "Back to Students" link
    */
-  navigateToLogin(): void {
-    this.router.navigate(['/login']);
+  navigateToStudents(): void {
+    this.router.navigate(['/students']);
   }
 }

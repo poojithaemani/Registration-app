@@ -82,6 +82,37 @@ export class ApiService {
   }
 
   /**
+   * Student Management Endpoints
+   */
+
+  /**
+   * Get all students with complete information
+   * @returns Observable with array of all students
+   */
+  getAllStudents(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/students`);
+  }
+
+  /**
+   * Get single student by ID with complete information
+   * @param childId - Child ID to retrieve
+   * @returns Observable with student data
+   */
+  getStudentById(childId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/students/${childId}`);
+  }
+
+  /**
+   * Update student information using PATCH
+   * @param childId - Child ID to update
+   * @param studentData - Updated student data
+   * @returns Observable with update response
+   */
+  updateStudent(childId: number, studentData: any): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/students/${childId}`, studentData);
+  }
+
+  /**
    * User Management Endpoints
    */
 

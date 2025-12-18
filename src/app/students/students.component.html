@@ -1,0 +1,143 @@
+<div class="students-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <h1 class="page-title">Student Management</h1>
+    <p class="page-subtitle">Manage and view all enrolled students</p>
+  </div>
+
+  <!-- Search and Enroll Section -->
+  <div class="search-enroll-section">
+    <div class="search-container">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearch()"
+        placeholder="Search by student or guardian name..."
+        class="search-input"
+      />
+      <span class="search-icon">🔍</span>
+    </div>
+    <button class="btn-primary" (click)="enrollNewStudent()">
+      + Enroll New Student
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading students...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-alert">
+    <span class="error-icon">⚠️</span>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Students Table -->
+  <div *ngIf="!isLoading && paginatedStudents.length > 0" class="table-wrapper">
+    <table class="students-table">
+      <thead>
+        <tr>
+          <th>Student Name</th>
+          <th>Guardian Name</th>
+          <th>Email</th>
+          <th>City</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let student of paginatedStudents" class="table-row">
+          <td class="student-name">
+            <span class="student-avatar">{{
+              student.childInfo?.firstName?.charAt(0) || "S"
+            }}</span>
+            {{ student.childInfo?.firstName }} {{ student.childInfo?.lastName }}
+          </td>
+          <td class="guardian-name">
+            {{ student.parentGuardianInfo?.firstName }}
+            {{ student.parentGuardianInfo?.lastName }}
+          </td>
+          <td class="email">
+            {{ student.parentGuardianInfo?.email || "N/A" }}
+          </td>
+          <td class="city">
+            {{ student.parentGuardianInfo?.city || "N/A" }}
+          </td>
+          <td class="action">
+            <button
+              class="btn-view"
+              (click)="viewStudentDetails(student.childInfo?.childId)"
+            >
+              View Details
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- No Results State -->
+  <div
+    *ngIf="!isLoading && paginatedStudents.length === 0 && !error"
+    class="no-data-container"
+  >
+    <div class="no-data-icon">📚</div>
+    <p class="no-data-text">
+      {{
+        searchTerm
+          ? "No students found matching your search"
+          : "No students enrolled yet"
+      }}
+    </p>
+    <button class="btn-primary" (click)="enrollNewStudent()">
+      Enroll First Student
+    </button>
+  </div>
+
+  <!-- Pagination Section -->
+  <div *ngIf="!isLoading && totalItems > 0" class="pagination-section">
+    <div class="pagination-info">
+      <span class="info-text">
+        Showing {{ startIndex }} to {{ endIndex }} of {{ totalItems }} entries
+      </span>
+      <div class="items-per-page">
+        <label for="itemsSelect">Items per page:</label>
+        <select
+          id="itemsSelect"
+          [(ngModel)]="itemsPerPage"
+          (change)="onItemsPerPageChange()"
+          class="select-input"
+        >
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="50">50</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="pagination-controls">
+      <button
+        class="btn-pagination"
+        [disabled]="currentPage === 1"
+        (click)="prevPage()"
+      >
+        ← Previous
+      </button>
+
+      <div class="page-numbers">
+        <span class="page-info">
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+      </div>
+
+      <button
+        class="btn-pagination"
+        [disabled]="currentPage === totalPages"
+        (click)="nextPage()"
+      >
+        Next →
+      </button>
+    </div>
+  </div>
+</div>

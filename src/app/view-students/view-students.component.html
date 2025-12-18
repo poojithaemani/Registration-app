@@ -1,0 +1,662 @@
+<div class="view-students-container">
+  <!-- Header with Back and Edit Button -->
+  <div class="view-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">← Back to Students</button>
+      <h1 class="page-title">Student Details</h1>
+    </div>
+    <div class="header-right">
+      <button
+        *ngIf="!isEditMode && !isLoading"
+        class="btn-edit"
+        (click)="enableEditMode()"
+      >
+        ✏️ Edit
+      </button>
+      <div *ngIf="isEditMode" class="action-buttons">
+        <button class="btn-save" (click)="saveChanges()" [disabled]="isSaving">
+          {{ isSaving ? "Saving..." : "✓ Save Changes" }}
+        </button>
+        <button class="btn-cancel" (click)="cancelEdit()">✕ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading student details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-alert">
+    <span class="error-icon">⚠️</span>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Form Content -->
+  <form
+    *ngIf="!isLoading && student"
+    [formGroup]="studentForm"
+    class="student-form"
+  >
+    <!-- Child Information Section -->
+    <section class="form-section">
+      <h2 class="section-title">👧 Child Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input
+            type="text"
+            formControlName="childFirstName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('childFirstName')"
+          />
+          <div *ngIf="isFieldInvalid('childFirstName')" class="error-message">
+            First name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Middle Name</label>
+          <input
+            type="text"
+            formControlName="childMiddleName"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input
+            type="text"
+            formControlName="childLastName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('childLastName')"
+          />
+          <div *ngIf="isFieldInvalid('childLastName')" class="error-message">
+            Last name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Gender *</label>
+          <select
+            formControlName="gender"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('gender')"
+          >
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <div *ngIf="isFieldInvalid('gender')" class="error-message">
+            Gender is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth *</label>
+          <input
+            type="date"
+            formControlName="dateOfBirth"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('dateOfBirth')"
+          />
+          <div *ngIf="isFieldInvalid('dateOfBirth')" class="error-message">
+            Date of birth is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Place of Birth *</label>
+          <input
+            type="text"
+            formControlName="placeOfBirth"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('placeOfBirth')"
+          />
+          <div *ngIf="isFieldInvalid('placeOfBirth')" class="error-message">
+            Place of birth is required
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Parent/Guardian Information Section -->
+    <section class="form-section">
+      <h2 class="section-title">👨‍👩‍👧 Parent/Guardian Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name *</label>
+          <input
+            type="text"
+            formControlName="parentFirstName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentFirstName')"
+          />
+          <div *ngIf="isFieldInvalid('parentFirstName')" class="error-message">
+            First name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Middle Name</label>
+          <input
+            type="text"
+            formControlName="parentMiddleName"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Last Name *</label>
+          <input
+            type="text"
+            formControlName="parentLastName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentLastName')"
+          />
+          <div *ngIf="isFieldInvalid('parentLastName')" class="error-message">
+            Last name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email *</label>
+          <input
+            type="email"
+            formControlName="parentEmail"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentEmail')"
+          />
+          <div *ngIf="isFieldInvalid('parentEmail')" class="error-message">
+            Email is required
+          </div>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label>Address Line 1 *</label>
+          <input
+            type="text"
+            formControlName="parentAddress1"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentAddress1')"
+          />
+          <div *ngIf="isFieldInvalid('parentAddress1')" class="error-message">
+            Address is required
+          </div>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label>Address Line 2</label>
+          <input
+            type="text"
+            formControlName="parentAddress2"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>City *</label>
+          <input
+            type="text"
+            formControlName="parentCity"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentCity')"
+          />
+          <div *ngIf="isFieldInvalid('parentCity')" class="error-message">
+            City is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>State *</label>
+          <select
+            formControlName="parentState"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentState')"
+          >
+            <option value="">Select State</option>
+            <option *ngFor="let state of usStates" [value]="state.name">
+              {{ state.name }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('parentState')" class="error-message">
+            State is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Country *</label>
+          <input
+            type="text"
+            formControlName="parentCountry"
+            class="form-control"
+            [readonly]="true"
+            [class.is-invalid]="isFieldInvalid('parentCountry')"
+          />
+          <div *ngIf="isFieldInvalid('parentCountry')" class="error-message">
+            Country is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Zip Code *</label>
+          <input
+            type="text"
+            formControlName="parentZipCode"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentZipCode')"
+          />
+          <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
+            Zip code is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Phone Type *</label>
+          <select
+            formControlName="parentPhoneType"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentPhoneType')"
+          >
+            <option value="">Select Phone Type</option>
+            <option *ngFor="let option of phoneTypeOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('parentPhoneType')" class="error-message">
+            Phone type is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input
+            type="tel"
+            formControlName="parentPhoneNumber"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
+          />
+          <div
+            *ngIf="isFieldInvalid('parentPhoneNumber')"
+            class="error-message"
+          >
+            Phone number is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Alternate Phone Type</label>
+          <select
+            formControlName="parentAlternatePhoneType"
+            class="form-control"
+          >
+            <option value="">Select Alternate Phone Type</option>
+            <option *ngFor="let option of phoneTypeOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Alternate Phone Number</label>
+          <input
+            type="tel"
+            formControlName="parentAlternatePhoneNumber"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Relationship *</label>
+          <select
+            formControlName="parentRelationship"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('parentRelationship')"
+          >
+            <option value="">Select Relationship</option>
+            <option value="Mother">Mother</option>
+            <option value="Father">Father</option>
+            <option value="Guardian">Guardian</option>
+            <option value="Other">Other</option>
+          </select>
+          <div
+            *ngIf="isFieldInvalid('parentRelationship')"
+            class="error-message"
+          >
+            Relationship is required
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Medical Information Section -->
+    <section class="form-section">
+      <h2 class="section-title">🏥 Medical Information</h2>
+      <div class="form-grid">
+        <div class="form-group form-group-full">
+          <label>Physician Name *</label>
+          <input
+            type="text"
+            formControlName="physicianName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('physicianName')"
+          />
+          <div *ngIf="isFieldInvalid('physicianName')" class="error-message">
+            Physician name is required
+          </div>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label>Address Line 1 *</label>
+          <input
+            type="text"
+            formControlName="medicalAddress1"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('medicalAddress1')"
+          />
+          <div *ngIf="isFieldInvalid('medicalAddress1')" class="error-message">
+            Address is required
+          </div>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label>Address Line 2</label>
+          <input
+            type="text"
+            formControlName="medicalAddress2"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>City *</label>
+          <input
+            type="text"
+            formControlName="medicalCity"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('medicalCity')"
+          />
+          <div *ngIf="isFieldInvalid('medicalCity')" class="error-message">
+            City is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>State *</label>
+          <select
+            formControlName="medicalState"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('medicalState')"
+          >
+            <option value="">Select State</option>
+            <option *ngFor="let state of usStates" [value]="state.name">
+              {{ state.name }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('medicalState')" class="error-message">
+            State is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Country *</label>
+          <input
+            type="text"
+            formControlName="medicalCountry"
+            class="form-control"
+            [readonly]="true"
+            [class.is-invalid]="isFieldInvalid('medicalCountry')"
+          />
+          <div *ngIf="isFieldInvalid('medicalCountry')" class="error-message">
+            Country is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Zip Code *</label>
+          <input
+            type="text"
+            formControlName="medicalZipCode"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('medicalZipCode')"
+          />
+          <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
+            Zip code is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Phone Type *</label>
+          <select
+            formControlName="medicalPhoneType"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('medicalPhoneType')"
+          >
+            <option value="">Select Phone Type</option>
+            <option *ngFor="let option of phoneTypeOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+          <div *ngIf="isFieldInvalid('medicalPhoneType')" class="error-message">
+            Phone type is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input
+            type="tel"
+            formControlName="medicalPhoneNumber"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('medicalPhoneNumber')"
+          />
+          <div
+            *ngIf="isFieldInvalid('medicalPhoneNumber')"
+            class="error-message"
+          >
+            Phone number is required
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Care Facility Section -->
+    <section class="form-section">
+      <h2 class="section-title">🏢 Care Facility Information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Emergency Contact Name *</label>
+          <input
+            type="text"
+            formControlName="emergencyContactName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('emergencyContactName')"
+          />
+          <div
+            *ngIf="isFieldInvalid('emergencyContactName')"
+            class="error-message"
+          >
+            Emergency contact name is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Emergency Phone Number *</label>
+          <input
+            type="tel"
+            formControlName="emergencyPhoneNumber"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('emergencyPhoneNumber')"
+          />
+          <div
+            *ngIf="isFieldInvalid('emergencyPhoneNumber')"
+            class="error-message"
+          >
+            Emergency phone number is required
+          </div>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label>Address Line 1 *</label>
+          <input
+            type="text"
+            formControlName="careFacilityAddress1"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('careFacilityAddress1')"
+          />
+          <div
+            *ngIf="isFieldInvalid('careFacilityAddress1')"
+            class="error-message"
+          >
+            Address is required
+          </div>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label>Address Line 2</label>
+          <input
+            type="text"
+            formControlName="careFacilityAddress2"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>City *</label>
+          <input
+            type="text"
+            formControlName="careFacilityCity"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('careFacilityCity')"
+          />
+          <div *ngIf="isFieldInvalid('careFacilityCity')" class="error-message">
+            City is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>State *</label>
+          <select
+            formControlName="careFacilityState"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('careFacilityState')"
+          >
+            <option value="">Select State</option>
+            <option *ngFor="let state of usStates" [value]="state.name">
+              {{ state.name }}
+            </option>
+          </select>
+          <div
+            *ngIf="isFieldInvalid('careFacilityState')"
+            class="error-message"
+          >
+            State is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Country *</label>
+          <input
+            type="text"
+            formControlName="careFacilityCountry"
+            class="form-control"
+            [readonly]="true"
+            [class.is-invalid]="isFieldInvalid('careFacilityCountry')"
+          />
+          <div
+            *ngIf="isFieldInvalid('careFacilityCountry')"
+            class="error-message"
+          >
+            Country is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Zip Code *</label>
+          <input
+            type="text"
+            formControlName="careFacilityZipCode"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('careFacilityZipCode')"
+          />
+          <div
+            *ngIf="isFieldInvalid('careFacilityZipCode')"
+            class="error-message"
+          >
+            Zip code is required
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Phone Type *</label>
+          <select
+            formControlName="careFacilityPhoneType"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('careFacilityPhoneType')"
+          >
+            <option value="">Select Phone Type</option>
+            <option *ngFor="let option of phoneTypeOptions" [value]="option">
+              {{ option }}
+            </option>
+          </select>
+          <div
+            *ngIf="isFieldInvalid('careFacilityPhoneType')"
+            class="error-message"
+          >
+            Phone type is required
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enrollment Program Details Section (Read-Only) -->
+    <section class="form-section enrollment-section">
+      <h2 class="section-title">📋 Enrollment Program Details (Read-Only)</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Enrollment Plan ID</label>
+          <input
+            type="text"
+            formControlName="enrollmentPlanId"
+            class="form-control"
+            [disabled]="true"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Enrollment Status</label>
+          <input
+            type="text"
+            formControlName="enrollmentStatus"
+            class="form-control"
+            [disabled]="true"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Payment Plan ID</label>
+          <input
+            type="text"
+            formControlName="paymentPlanId"
+            class="form-control"
+            [disabled]="true"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Enrollment Amount</label>
+          <input
+            type="text"
+            formControlName="enrollmentAmount"
+            class="form-control"
+            [disabled]="true"
+          />
+        </div>
+      </div>
+    </section>
+  </form>
+</div>

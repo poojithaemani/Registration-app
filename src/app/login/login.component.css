@@ -78,8 +78,8 @@ label {
 
 .form-control:focus {
   outline: none;
-  border-color: #ff6b6b;
-  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .form-control.is-invalid {
@@ -137,7 +137,7 @@ label {
 }
 
 .forgot-password a {
-  color: #ff6b6b;
+  color: #667eea;
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -145,14 +145,14 @@ label {
 }
 
 .forgot-password a:hover {
-  color: #ff8e53;
+  color: #764ba2;
   text-decoration: underline;
 }
 
 .btn-login {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   border-radius: 6px;
@@ -165,7 +165,7 @@ label {
 
 .btn-login:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .btn-login:active {
@@ -193,5 +193,5 @@ label {
 }
 
 .btn-signup:hover {
-  background: #ff6b6b;
+  background: #667eea;
 }
