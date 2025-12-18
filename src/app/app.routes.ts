@@ -31,5 +31,4 @@ export const routes: Routes = [
     component: EditRegistrationComponent,
     canActivate: [AuthGuard],
   },
-  { path: '**', redirectTo: '/login' },
 ];
