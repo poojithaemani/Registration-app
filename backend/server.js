@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 // Enable CORS for frontend on port 4200
 const corsOptions = {
-  origin: "http://localhost:4200",
+  origin: ["http://localhost:4200", "https://login-reg-app.netlify.app"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
