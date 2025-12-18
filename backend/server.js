@@ -33,14 +33,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler (must be last)
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
 app.listen(PORT, () => {
   console.log(`✅ Backend running on http://localhost:${PORT}`);
 });
