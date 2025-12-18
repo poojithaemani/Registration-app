@@ -44,3 +44,7 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Backend running on http://localhost:${PORT}`);
 });
+
+app.get("/", async (req, res) => {
+  res.send("Server is running!");
+});
