@@ -8,7 +8,7 @@ import { ViewStudentsComponent } from './view-students/view-students.component';
 import { AuthGuard } from './services/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', component: LoginComponent },
   { path: 'login', component: LoginComponent },
   { path: 'admin', component: AdminComponent },
   {
