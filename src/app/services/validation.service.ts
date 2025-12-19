@@ -8,11 +8,11 @@ import { Injectable } from '@angular/core';
  * Provides validators for names, emails, phones, addresses, dates, zip codes
  */
 export class ValidationService {
-  private readonly nameRegex = /^(?=.*[a-zA-ZÀ-ÿ'])[a-zA-ZÀ-ÿ' ]{1,30}$/;
+  private readonly nameRegex = /^(?=.*[a-zA-ZÀ-ÿ'])[a-zA-ZÀ-ÿ' ]{1,20}$/;
   private readonly phoneRegex = /^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
   private readonly addressRegex =
     /^(?!\s+$)(?=.*[A-Za-z0-9])[A-Za-z0-9\s.,'#\-\/&()]{3,100}$/;
-  private readonly cityRegex = /^[A-Za-zÀ-ÿ''.\- ]{2,100}$/;
+  private readonly cityRegex = /^[A-Za-zÀ-ÿ''.\- ]{1,100}$/;
   private readonly emailRegex =
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   private readonly dateOfBirthRegex =

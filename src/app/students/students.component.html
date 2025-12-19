@@ -17,9 +17,14 @@
       />
       <span class="search-icon">🔍</span>
     </div>
-    <button class="btn-primary" (click)="enrollNewStudent()">
-      + Enroll New Student
-    </button>
+    <div class="enroll-section">
+      <button class="back-to-login" (click)="navigateToLogin()">
+        ← Back to Login
+      </button>
+      <button class="btn-primary" (click)="enrollNewStudent()">
+        + Enroll New Student
+      </button>
+    </div>
   </div>
 
   <!-- Loading State -->
@@ -41,8 +46,7 @@
         <tr>
           <th>Student Name</th>
           <th>Guardian Name</th>
-          <th>Email</th>
-          <th>City</th>
+          <th>Guardian Email</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -60,9 +64,6 @@
           </td>
           <td class="email">
             {{ student.parentGuardianInfo?.email || "N/A" }}
-          </td>
-          <td class="city">
-            {{ student.parentGuardianInfo?.city || "N/A" }}
           </td>
           <td class="action">
             <button

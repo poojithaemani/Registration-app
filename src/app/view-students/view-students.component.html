@@ -64,6 +64,9 @@
             formControlName="childMiddleName"
             class="form-control"
           />
+          <div *ngIf="isFieldInvalid('childMiddleName')" class="error-message">
+            {{ getFieldErrorMessage("childMiddleName") }}
+          </div>
         </div>
 
         <div class="form-group">
@@ -148,6 +151,9 @@
             formControlName="parentMiddleName"
             class="form-control"
           />
+          <div *ngIf="isFieldInvalid('parentMiddleName')" class="error-message">
+            {{ getFieldErrorMessage("parentMiddleName") }}
+          </div>
         </div>
 
         <div class="form-group">
@@ -172,7 +178,7 @@
             [class.is-invalid]="isFieldInvalid('parentEmail')"
           />
           <div *ngIf="isFieldInvalid('parentEmail')" class="error-message">
-            Email is required
+            {{ getFieldErrorMessage("parentEmail") }}
           </div>
         </div>
 
@@ -618,10 +624,30 @@
       <h2 class="section-title">📋 Enrollment Program Details (Read-Only)</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>Enrollment Plan ID</label>
+          <label>Program Type</label>
           <input
             type="text"
-            formControlName="enrollmentPlanId"
+            formControlName="programType"
+            class="form-control"
+            [disabled]="true"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Room Type</label>
+          <input
+            type="text"
+            formControlName="roomType"
+            class="form-control"
+            [disabled]="true"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Plan Type</label>
+          <input
+            type="text"
+            formControlName="planType"
             class="form-control"
             [disabled]="true"
           />
@@ -632,26 +658,6 @@
           <input
             type="text"
             formControlName="enrollmentStatus"
-            class="form-control"
-            [disabled]="true"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Payment Plan ID</label>
-          <input
-            type="text"
-            formControlName="paymentPlanId"
-            class="form-control"
-            [disabled]="true"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Enrollment Amount</label>
-          <input
-            type="text"
-            formControlName="enrollmentAmount"
             class="form-control"
             [disabled]="true"
           />

@@ -235,7 +235,10 @@ export const getAllStudents = async (req, res) => {
         r.enrollmentplanid,
         r.status AS enrollmentStatus,
         r.paymentplanid,
-        r.amount AS registrationAmount
+        r.amount AS registrationAmount,
+        p.programname AS programType,
+        rt.roomtype AS roomType,
+        pln.plantype AS planType
       FROM
         children c
       LEFT JOIN child_guardians cg ON c.childid = cg.childid AND cg.isprimary = true
@@ -243,6 +246,10 @@ export const getAllStudents = async (req, res) => {
       LEFT JOIN medicalcontacts m ON c.childid = m.childid
       LEFT JOIN carefacilities cf ON c.childid = cf.childid
       LEFT JOIN registrations r ON c.childid = r.childid
+      LEFT JOIN enrollmentplans ep ON r.enrollmentplanid = ep.enrollmentplanid
+      LEFT JOIN programs p ON ep.programid = p.programid
+      LEFT JOIN roomtypes rt ON ep.roomtypeid = rt.roomtypeid
+      LEFT JOIN paymentplan pln ON r.paymentplanid = pln.paymentplanid
       ORDER BY c.childid DESC
     `;
 
@@ -327,6 +334,9 @@ export const getAllStudents = async (req, res) => {
             status: row.enrollmentstatus,
             paymentPlanId: row.paymentplanid,
             amount: row.registrationamount,
+            programType: row.programtype,
+            roomType: row.roomtype,
+            planType: row.plantype,
           },
         };
 
@@ -421,7 +431,10 @@ export const getStudentById = async (req, res) => {
         r.enrollmentplanid,
         r.status AS enrollmentStatus,
         r.paymentplanid,
-        r.amount AS registrationAmount
+        r.amount AS registrationAmount,
+        p.programname AS programType,
+        rt.roomtype AS roomType,
+        pln.plantype AS planType
       FROM
         children c
       LEFT JOIN child_guardians cg ON c.childid = cg.childid AND cg.isprimary = true
@@ -429,6 +442,10 @@ export const getStudentById = async (req, res) => {
       LEFT JOIN medicalcontacts m ON c.childid = m.childid
       LEFT JOIN carefacilities cf ON c.childid = cf.childid
       LEFT JOIN registrations r ON c.childid = r.childid
+      LEFT JOIN enrollmentplans ep ON r.enrollmentplanid = ep.enrollmentplanid
+      LEFT JOIN programs p ON ep.programid = p.programid
+      LEFT JOIN roomtypes rt ON ep.roomtypeid = rt.roomtypeid
+      LEFT JOIN paymentplan pln ON r.paymentplanid = pln.paymentplanid
       WHERE c.childid = $1
     `;
 
@@ -504,6 +521,9 @@ export const getStudentById = async (req, res) => {
         status: row.enrollmentstatus,
         paymentPlanId: row.paymentplanid,
         amount: row.registrationamount,
+        programType: row.programtype,
+        roomType: row.roomtype,
+        planType: row.plantype,
       },
     };
 

@@ -2,8 +2,13 @@
   <!-- Success Snackbar -->
   <div *ngIf="successMessage" class="snackbar snackbar-success">
     <span>{{ successMessage }}</span>
-    <button type="button" class="snackbar-close" (click)="successMessage = ''">
-      Close
+    <button
+      type="button"
+      class="snackbar-close"
+      (click)="successMessage = ''"
+      aria-label="Close"
+    >
+      ✕
     </button>
   </div>
 
@@ -27,7 +32,7 @@
             class="back-to-login"
             (click)="navigateToStudents()"
           >
-            Back to Students
+            ← Back to Students
           </button>
           <button
             *ngIf="!isEditMode"
@@ -35,7 +40,7 @@
             class="btn-edit"
             (click)="enableEditMode()"
           >
-            Edit Details
+            ✏️ Edit Details
           </button>
           <button
             *ngIf="isEditMode"
@@ -44,7 +49,7 @@
             [disabled]="true"
             style="opacity: 0.6"
           >
-            Edit Details
+            ✏️ Edit Details
           </button>
         </div>
       </div>
@@ -86,6 +91,12 @@
               class="form-control"
               [readonly]="!isEditMode"
             />
+            <div
+              *ngIf="isFieldInvalid('childMiddleName')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("childMiddleName") }}
+            </div>
           </div>
           <div
             class="form-group"
@@ -210,6 +221,12 @@
               class="form-control"
               [readonly]="!isEditMode"
             />
+            <div
+              *ngIf="isFieldInvalid('parentMiddleName')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("parentMiddleName") }}
+            </div>
           </div>
           <div
             class="form-group"
@@ -275,7 +292,7 @@
               [readonly]="!isEditMode"
             />
             <div *ngIf="isFieldInvalid('parentEmail')" class="error-message">
-              Valid email is required
+              {{ getFieldErrorMessage("parentEmail") }}
             </div>
           </div>
         </div>

@@ -2,8 +2,13 @@
   <!-- Success Snackbar -->
   <div *ngIf="successMessage" class="snackbar snackbar-success">
     <span>{{ successMessage }}</span>
-    <button type="button" class="snackbar-close" (click)="successMessage = ''">
-      Close
+    <button
+      type="button"
+      class="snackbar-close"
+      (click)="successMessage = ''"
+      aria-label="Close"
+    >
+      ✕
     </button>
   </div>
 
@@ -15,14 +20,14 @@
         class="back-to-login"
         (click)="navigateToStudents()"
       >
-        Back to Students
+        ← Back to Students
       </button>
     </div>
 
     <form [formGroup]="registrationForm" (ngSubmit)="onCompleteRegistration()">
       <!-- Child Info Section -->
       <div class="form-section">
-        <h2 class="section-title">Child Information</h2>
+        <h2 class="section-title">👧 Child Information</h2>
         <div class="form-row">
           <div class="form-group">
             <label for="childFirstName" class="required">First Name</label>
@@ -31,11 +36,11 @@
               type="text"
               formControlName="childFirstName"
               class="form-control"
-              placeholder="Enter first name"
+              placeholder="Enter first name (letters only)"
               [class.is-invalid]="isFieldInvalid('childFirstName')"
             />
             <div *ngIf="isFieldInvalid('childFirstName')" class="error-message">
-              First name is required
+              {{ getFieldErrorMessage("childFirstName") }}
             </div>
           </div>
 
@@ -46,8 +51,14 @@
               type="text"
               formControlName="childMiddleName"
               class="form-control"
-              placeholder="Enter middle name"
+              placeholder="Enter middle name (letters only)"
             />
+            <div
+              *ngIf="isFieldInvalid('childMiddleName')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("childMiddleName") }}
+            </div>
           </div>
 
           <div class="form-group">
@@ -57,11 +68,11 @@
               type="text"
               formControlName="childLastName"
               class="form-control"
-              placeholder="Enter last name"
+              placeholder="Enter last name (letters only)"
               [class.is-invalid]="isFieldInvalid('childLastName')"
             />
             <div *ngIf="isFieldInvalid('childLastName')" class="error-message">
-              Last name is required
+              {{ getFieldErrorMessage("childLastName") }}
             </div>
           </div>
         </div>
@@ -81,7 +92,7 @@
               </option>
             </select>
             <div *ngIf="isFieldInvalid('gender')" class="error-message">
-              Gender is required
+              {{ getFieldErrorMessage("gender") }}
             </div>
           </div>
 
@@ -97,7 +108,7 @@
               [class.is-invalid]="isFieldInvalid('dateOfBirth')"
             />
             <div *ngIf="isFieldInvalid('dateOfBirth')" class="error-message">
-              Date of birth is required
+              {{ getFieldErrorMessage("dateOfBirth") }}
             </div>
           </div>
 
@@ -112,7 +123,7 @@
               [class.is-invalid]="isFieldInvalid('placeOfBirth')"
             />
             <div *ngIf="isFieldInvalid('placeOfBirth')" class="error-message">
-              Place of birth is required
+              {{ getFieldErrorMessage("placeOfBirth") }}
             </div>
           </div>
         </div>
@@ -120,7 +131,7 @@
 
       <!-- Parent/Guardian Info Section -->
       <div class="form-section">
-        <h2 class="section-title">Parent/Guardian Information</h2>
+        <h2 class="section-title">👨‍👩‍👧 Parent/Guardian Information</h2>
         <div class="form-row">
           <div class="form-group">
             <label for="parentFirstName" class="required">First Name</label>
@@ -136,7 +147,7 @@
               *ngIf="isFieldInvalid('parentFirstName')"
               class="error-message"
             >
-              First name is required
+              {{ getFieldErrorMessage("parentFirstName") }}
             </div>
           </div>
 
@@ -149,6 +160,12 @@
               class="form-control"
               placeholder="Enter middle name"
             />
+            <div
+              *ngIf="isFieldInvalid('parentMiddleName')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("parentMiddleName") }}
+            </div>
           </div>
 
           <div class="form-group">
@@ -162,7 +179,7 @@
               [class.is-invalid]="isFieldInvalid('parentLastName')"
             />
             <div *ngIf="isFieldInvalid('parentLastName')" class="error-message">
-              Last name is required
+              {{ getFieldErrorMessage("parentLastName") }}
             </div>
           </div>
         </div>
@@ -185,7 +202,7 @@
               </option>
             </select>
             <div *ngIf="isFieldInvalid('relationship')" class="error-message">
-              Relationship is required
+              {{ getFieldErrorMessage("relationship") }}
             </div>
           </div>
 
@@ -200,7 +217,7 @@
               [class.is-invalid]="isFieldInvalid('parentEmail')"
             />
             <div *ngIf="isFieldInvalid('parentEmail')" class="error-message">
-              Valid email is required
+              {{ getFieldErrorMessage("parentEmail") }}
             </div>
           </div>
         </div>
@@ -217,7 +234,7 @@
               [class.is-invalid]="isFieldInvalid('parentAddress1')"
             />
             <div *ngIf="isFieldInvalid('parentAddress1')" class="error-message">
-              Address is required
+              {{ getFieldErrorMessage("parentAddress1") }}
             </div>
           </div>
 
@@ -259,7 +276,7 @@
               </option>
             </select>
             <div *ngIf="isFieldInvalid('parentState')" class="error-message">
-              State is required
+              {{ getFieldErrorMessage("parentState") }}
             </div>
           </div>
 
@@ -274,7 +291,7 @@
               [class.is-invalid]="isFieldInvalid('parentCity')"
             />
             <div *ngIf="isFieldInvalid('parentCity')" class="error-message">
-              City is required
+              {{ getFieldErrorMessage("parentCity") }}
             </div>
           </div>
 
@@ -289,7 +306,7 @@
               [class.is-invalid]="isFieldInvalid('parentZipCode')"
             />
             <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
-              Zip code is required
+              {{ getFieldErrorMessage("parentZipCode") }}
             </div>
           </div>
         </div>
@@ -312,7 +329,7 @@
               *ngIf="isFieldInvalid('parentPhoneType')"
               class="error-message"
             >
-              Phone type is required
+              {{ getFieldErrorMessage("parentPhoneType") }}
             </div>
           </div>
 
@@ -325,9 +342,9 @@
                 type="text"
                 formControlName="parentPhoneNumber"
                 class="form-control"
-                placeholder="(555) 555-5555"
-                maxlength="14"
-                (keypress)="onPhoneKeypress($event, 'parentPhoneNumber')"
+                placeholder="555-555-5555"
+                maxlength="10"
+                (input)="sanitizePhoneInput($event, 'parentPhoneNumber')"
                 [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
               />
             </div>
@@ -335,7 +352,7 @@
               *ngIf="isFieldInvalid('parentPhoneNumber')"
               class="error-message"
             >
-              Phone number must be 10 digits
+              {{ getFieldErrorMessage("parentPhoneNumber") }}
             </div>
           </div>
 
@@ -372,7 +389,7 @@
 
       <!-- Medical Info Section -->
       <div class="form-section">
-        <h2 class="section-title">Medical Information</h2>
+        <h2 class="section-title">🏥 Medical Information</h2>
         <div class="form-row">
           <div class="form-group">
             <label for="physicianFirstName" class="required"
@@ -390,7 +407,7 @@
               *ngIf="isFieldInvalid('physicianFirstName')"
               class="error-message"
             >
-              Physician first name is required
+              {{ getFieldErrorMessage("physicianFirstName") }}
             </div>
           </div>
 
@@ -410,7 +427,7 @@
               *ngIf="isFieldInvalid('physicianLastName')"
               class="error-message"
             >
-              Physician last name is required
+              {{ getFieldErrorMessage("physicianLastName") }}
             </div>
           </div>
         </div>
@@ -430,7 +447,7 @@
               *ngIf="isFieldInvalid('medicalAddress1')"
               class="error-message"
             >
-              Address is required
+              {{ getFieldErrorMessage("medicalAddress1") }}
             </div>
           </div>
 
@@ -472,7 +489,7 @@
               </option>
             </select>
             <div *ngIf="isFieldInvalid('medicalState')" class="error-message">
-              State is required
+              {{ getFieldErrorMessage("medicalState") }}
             </div>
           </div>
 
@@ -487,7 +504,7 @@
               [class.is-invalid]="isFieldInvalid('medicalCity')"
             />
             <div *ngIf="isFieldInvalid('medicalCity')" class="error-message">
-              City is required
+              {{ getFieldErrorMessage("medicalCity") }}
             </div>
           </div>
 
@@ -502,7 +519,7 @@
               [class.is-invalid]="isFieldInvalid('medicalZipCode')"
             />
             <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
-              Zip code is required
+              {{ getFieldErrorMessage("medicalZipCode") }}
             </div>
           </div>
         </div>
@@ -525,7 +542,7 @@
               *ngIf="isFieldInvalid('medicalPhoneType')"
               class="error-message"
             >
-              Phone type is required
+              {{ getFieldErrorMessage("medicalPhoneType") }}
             </div>
           </div>
 
@@ -550,7 +567,7 @@
               *ngIf="isFieldInvalid('medicalPhoneNumber')"
               class="error-message"
             >
-              Phone number must be 10 digits
+              {{ getFieldErrorMessage("medicalPhoneNumber") }}
             </div>
           </div>
 
@@ -589,7 +606,7 @@
 
       <!-- Care Facility Info Section -->
       <div class="form-section">
-        <h2 class="section-title">Care Facility Information</h2>
+        <h2 class="section-title">🏢 Care Facility Information</h2>
         <div class="form-row">
           <div class="form-group full-width">
             <label for="emergencyContactName" class="required"
@@ -607,7 +624,7 @@
               *ngIf="isFieldInvalid('emergencyContactName')"
               class="error-message"
             >
-              Emergency contact name is required
+              {{ getFieldErrorMessage("emergencyContactName") }}
             </div>
           </div>
         </div>
@@ -629,7 +646,7 @@
               *ngIf="isFieldInvalid('careFacilityAddress1')"
               class="error-message"
             >
-              Address is required
+              {{ getFieldErrorMessage("careFacilityAddress1") }}
             </div>
           </div>
 
@@ -674,7 +691,7 @@
               *ngIf="isFieldInvalid('careFacilityState')"
               class="error-message"
             >
-              State is required
+              {{ getFieldErrorMessage("careFacilityState") }}
             </div>
           </div>
 
@@ -692,7 +709,7 @@
               *ngIf="isFieldInvalid('careFacilityCity')"
               class="error-message"
             >
-              City is required
+              {{ getFieldErrorMessage("careFacilityCity") }}
             </div>
           </div>
 
@@ -710,7 +727,7 @@
               *ngIf="isFieldInvalid('careFacilityZipCode')"
               class="error-message"
             >
-              Zip code is required
+              {{ getFieldErrorMessage("careFacilityZipCode") }}
             </div>
           </div>
         </div>
@@ -735,7 +752,7 @@
               *ngIf="isFieldInvalid('careFacilityPhoneType')"
               class="error-message"
             >
-              Phone type is required
+              {{ getFieldErrorMessage("careFacilityPhoneType") }}
             </div>
           </div>
 
@@ -760,7 +777,7 @@
               *ngIf="isFieldInvalid('emergencyPhoneNumber')"
               class="error-message"
             >
-              Emergency contact phone number must be 10 digits
+              {{ getFieldErrorMessage("emergencyPhoneNumber") }}
             </div>
           </div>
         </div>
@@ -768,7 +785,7 @@
 
       <!-- Enrollment Program Details Section -->
       <div class="form-section">
-        <h2 class="section-title">Enrollment Program Details</h2>
+        <h2 class="section-title">📋 Enrollment Program Details</h2>
         <div class="form-row">
           <div class="form-group">
             <label for="programType" class="required">Program Type</label>

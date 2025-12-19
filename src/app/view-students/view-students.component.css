@@ -1,6 +1,6 @@
 .view-students-container {
   padding: 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f7fa;
   min-height: 100vh;
 }
 
@@ -42,9 +42,9 @@
 }
 
 .btn-back:hover {
-  background: #667eea;
+  background: #ff8c42;
   color: white;
-  border-color: #667eea;
+  border-color: #ff8c42;
 }
 
 .page-title {
@@ -59,7 +59,7 @@
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: white;
   border: none;
   border-radius: 8px;
@@ -72,6 +72,7 @@
 
 .btn-edit:hover {
   transform: translateY(-2px);
+  background: #5568d3;
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
@@ -84,7 +85,7 @@
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: #11998e;
   color: white;
   border: none;
   border-radius: 8px;
@@ -139,7 +140,7 @@
   width: 50px;
   height: 50px;
   border: 4px solid #ecf0f1;
-  border-top-color: #667eea;
+  border-top-color: #ff8c42;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -207,7 +208,7 @@
   color: #2c3e50;
   margin: 0 0 1.5rem 0;
   padding-bottom: 1rem;
-  border-bottom: 3px solid #667eea;
+  border-bottom: 3px solid #ff8c42;
 }
 
 .form-grid {
@@ -229,8 +230,10 @@
   font-size: 0.95rem;
   font-weight: 600;
   color: #2c3e50;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: block;
+  line-height: 1.4;
 }
 
 .form-control {
@@ -246,8 +249,8 @@
 
 .form-control:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #ff8c42;
+  box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
 }
 
 .form-control:disabled {
@@ -275,12 +278,8 @@
 
 /* Enrollment Section */
 .enrollment-section {
-  background: linear-gradient(
-    135deg,
-    rgba(102, 126, 234, 0.05) 0%,
-    rgba(118, 75, 162, 0.05) 100%
-  );
-  border-left: 4px solid #667eea;
+  background: rgba(255, 140, 66, 0.05);
+  border-left: 4px solid #ff8c42;
 }
 
 .enrollment-section .form-control {

@@ -50,18 +50,42 @@ export class ViewStudentsComponent implements OnInit {
    */
   initializeForm(): void {
     this.studentForm = this.formBuilder.group({
-      childFirstName: [{ value: '', disabled: true }, Validators.required],
-      childMiddleName: [{ value: '', disabled: true }],
-      childLastName: [{ value: '', disabled: true }, Validators.required],
+      childFirstName: [
+        { value: '', disabled: true },
+        [Validators.required, this.nameValidator.bind(this)],
+      ],
+      childMiddleName: [
+        { value: '', disabled: true },
+        this.nameValidator.bind(this),
+      ],
+      childLastName: [
+        { value: '', disabled: true },
+        [Validators.required, this.nameValidator.bind(this)],
+      ],
       gender: [{ value: '', disabled: true }, Validators.required],
       dateOfBirth: [{ value: '', disabled: true }, Validators.required],
-      placeOfBirth: [{ value: '', disabled: true }, Validators.required],
+      placeOfBirth: [
+        { value: '', disabled: true },
+        [Validators.required, this.nameValidator.bind(this)],
+      ],
 
       // Parent/Guardian
-      parentFirstName: [{ value: '', disabled: true }, Validators.required],
-      parentMiddleName: [{ value: '', disabled: true }],
-      parentLastName: [{ value: '', disabled: true }, Validators.required],
-      parentEmail: [{ value: '', disabled: true }, Validators.required],
+      parentFirstName: [
+        { value: '', disabled: true },
+        [Validators.required, this.nameValidator.bind(this)],
+      ],
+      parentMiddleName: [
+        { value: '', disabled: true },
+        this.nameValidator.bind(this),
+      ],
+      parentLastName: [
+        { value: '', disabled: true },
+        [Validators.required, this.nameValidator.bind(this)],
+      ],
+      parentEmail: [
+        { value: '', disabled: true },
+        [Validators.required, Validators.email],
+      ],
       parentAddress1: [{ value: '', disabled: true }, Validators.required],
       parentAddress2: [{ value: '', disabled: true }],
       parentCity: [{ value: '', disabled: true }, Validators.required],
@@ -75,7 +99,10 @@ export class ViewStudentsComponent implements OnInit {
       parentRelationship: [{ value: '', disabled: true }, Validators.required],
 
       // Medical
-      physicianName: [{ value: '', disabled: true }, Validators.required],
+      physicianName: [
+        { value: '', disabled: true },
+        [Validators.required, this.nameValidator.bind(this)],
+      ],
       medicalAddress1: [{ value: '', disabled: true }, Validators.required],
       medicalAddress2: [{ value: '', disabled: true }],
       medicalCity: [{ value: '', disabled: true }, Validators.required],
@@ -88,7 +115,7 @@ export class ViewStudentsComponent implements OnInit {
       // Care Facility
       emergencyContactName: [
         { value: '', disabled: true },
-        Validators.required,
+        [Validators.required, this.nameValidator.bind(this)],
       ],
       emergencyPhoneNumber: [
         { value: '', disabled: true },
@@ -110,6 +137,9 @@ export class ViewStudentsComponent implements OnInit {
 
       // Enrollment (read-only)
       enrollmentPlanId: [{ value: '', disabled: true }],
+      programType: [{ value: '', disabled: true }],
+      roomType: [{ value: '', disabled: true }],
+      planType: [{ value: '', disabled: true }],
       enrollmentStatus: [{ value: '', disabled: true }],
       paymentPlanId: [{ value: '', disabled: true }],
       enrollmentAmount: [{ value: '', disabled: true }],
@@ -196,9 +226,12 @@ export class ViewStudentsComponent implements OnInit {
       careFacilityZipCode: this.student.careFacilityInfo?.zipCode || '',
       careFacilityPhoneType: this.student.careFacilityInfo?.phoneType || '',
 
+      programType: this.student.enrollmentProgramDetails?.programType || '',
+      roomType: this.student.enrollmentProgramDetails?.roomType || '',
+      planType: this.student.enrollmentProgramDetails?.planType || '',
+      enrollmentStatus: this.student.enrollmentProgramDetails?.status || '',
       enrollmentPlanId:
         this.student.enrollmentProgramDetails?.enrollmentPlanId || '',
-      enrollmentStatus: this.student.enrollmentProgramDetails?.status || '',
       paymentPlanId: this.student.enrollmentProgramDetails?.paymentPlanId || '',
       enrollmentAmount: this.student.enrollmentProgramDetails?.amount || '',
     });
@@ -242,6 +275,9 @@ export class ViewStudentsComponent implements OnInit {
    * Save changes
    */
   saveChanges(): void {
+    // Trim whitespace from all string controls before validating
+    this.trimAllStringControls();
+
     if (!this.studentForm.valid) {
       this.notificationService.error('Please fill in all required fields');
       return;
@@ -336,5 +372,151 @@ export class ViewStudentsComponent implements OnInit {
   isFieldInvalid(fieldName: string): boolean {
     const field = this.studentForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
+  }
+
+  isRequiredField(fieldName: string): boolean {
+    const field = this.studentForm.get(fieldName);
+    if (!field || !field.validator) return false;
+    const validator = field.validator({} as any);
+    return validator && validator['required'];
+  }
+
+  /**
+   * Custom validator for name fields
+   * Allows only letters, spaces, hyphens, and apostrophes
+   */
+  nameValidator(control: any) {
+    if (control.value == null) return null;
+    const raw = String(control.value);
+    const trimmed = raw.trim();
+    if (trimmed.length === 0) return null;
+    const nameRegex = /^[a-zA-Z\s'-]+$/;
+    if (!nameRegex.test(trimmed)) {
+      return { invalidName: true };
+    }
+    return null;
+  }
+
+  // Note: Using Angular's built-in Validators.email for generic email validation
+  /** Trim leading/trailing spaces for all string controls in the form */
+  trimAllStringControls() {
+    if (!this.studentForm) return;
+    Object.keys(this.studentForm.controls).forEach((key) => {
+      const control = this.studentForm.get(key);
+      if (!control) return;
+      const val = control.value;
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        const currentErrors = control.errors ? { ...control.errors } : {};
+
+        if (val.length > 0 && trimmed.length === 0) {
+          currentErrors['onlySpaces'] = true;
+          control.setErrors(currentErrors);
+          return;
+        }
+
+        if (currentErrors['onlySpaces']) {
+          delete currentErrors['onlySpaces'];
+          const hasOther = Object.keys(currentErrors).length > 0;
+          control.setErrors(hasOther ? currentErrors : null);
+        }
+
+        if (trimmed !== val) {
+          control.setValue(trimmed, { emitEvent: false });
+        }
+      }
+    });
+  }
+
+  /**
+   * Custom validator for phone numbers (10 digits)
+   */
+  phoneValidator(control: any) {
+    if (!control.value) return null;
+    const digitsOnly = control.value.replace(/\D/g, '');
+    if (digitsOnly.length !== 10) {
+      return { invalidPhone: true };
+    }
+    return null;
+  }
+
+  /**
+   * Custom validator for zip codes (5 digits)
+   */
+  zipCodeValidator(control: any) {
+    if (!control.value) return null;
+    const digitsOnly = control.value.replace(/\D/g, '');
+    if (digitsOnly.length !== 5) {
+      return { invalidZipCode: true };
+    }
+    return null;
+  }
+
+  /**
+   * Sanitizes name input - removes non-letter characters
+   */
+  sanitizeNameInput(event: any, fieldName: string) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value;
+    value = value.replace(/[^a-zA-Z\s'-]/g, '');
+    input.value = value;
+    if (this.studentForm.get(fieldName)) {
+      this.studentForm.get(fieldName)?.setValue(value, { emitEvent: false });
+    }
+  }
+
+  /**
+   * Sanitizes phone input - keeps only digits, limits to 10
+   */
+  sanitizePhoneInput(event: any, fieldName: string) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value;
+    value = value.replace(/\D/g, '');
+    value = value.substring(0, 10);
+    input.value = value;
+    if (this.studentForm.get(fieldName)) {
+      this.studentForm.get(fieldName)?.setValue(value, { emitEvent: false });
+    }
+  }
+
+  /**
+   * Sanitizes zip code input - keeps only digits, limits to 5
+   */
+  sanitizeZipInput(event: any, fieldName: string) {
+    const input = event.target as HTMLInputElement;
+    let value = input.value;
+    value = value.replace(/\D/g, '');
+    value = value.substring(0, 5);
+    input.value = value;
+    if (this.studentForm.get(fieldName)) {
+      this.studentForm.get(fieldName)?.setValue(value, { emitEvent: false });
+    }
+  }
+
+  /**
+   * Gets formatted error message for a field
+   */
+  getFieldErrorMessage(fieldName: string): string {
+    const control = this.studentForm.get(fieldName);
+    if (!control || !control.errors) return '';
+    const rawLabel = fieldName.replace(/([A-Z])/g, ' $1').trim();
+    const label =
+      rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
+
+    if (control.errors['onlySpaces']) return 'Only spaces are not allowed';
+    if (control.errors['required']) return `${label} is required`;
+    if (control.errors['email']) return 'Please enter a valid email address';
+    if (control.errors['whitespace']) {
+      if (this.isRequiredField && this.isRequiredField(fieldName))
+        return `${label} is required`;
+      return '';
+    }
+    if (control.errors['invalidName'])
+      return 'Only letters, spaces, hyphens, and apostrophes are allowed';
+    if (control.errors['invalidPhone'])
+      return 'Phone number must be exactly 10 digits';
+    if (control.errors['invalidZipCode'])
+      return 'Zip code must be exactly 5 digits';
+    return 'Invalid input';
   }
 }

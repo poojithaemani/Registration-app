@@ -150,6 +150,13 @@ export class StudentsComponent implements OnInit {
   }
 
   /**
+   * Navigate back to login
+   */
+  navigateToLogin(): void {
+    this.router.navigate(['/login']);
+  }
+
+  /**
    * Get display name for pagination info
    */
   get startIndex(): number {
