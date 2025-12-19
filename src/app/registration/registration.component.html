@@ -24,7 +24,7 @@
       </button>
     </div>
 
-    <form [formGroup]="registrationForm" (ngSubmit)="onCompleteRegistration()">
+    <form [formGroup]="registrationForm" (ngSubmit)="submitRegistration()">
       <!-- Child Info Section -->
       <div class="form-section">
         <h2 class="section-title">👧 Child Information</h2>
@@ -797,10 +797,10 @@
             >
               <option value="">Select Program Type</option>
               <option
-                *ngFor="let option of programTypeOptions"
-                [value]="option"
+                *ngFor="let program of programTypeOptions"
+                [value]="program.programid"
               >
-                {{ option }}
+                {{ formatDropdownText(program.programname) }}
               </option>
             </select>
             <div *ngIf="isFieldInvalid('programType')" class="error-message">
@@ -817,8 +817,11 @@
               [class.is-invalid]="isFieldInvalid('roomType')"
             >
               <option value="">Select Room Type</option>
-              <option *ngFor="let option of roomTypeOptions" [value]="option">
-                {{ option }}
+              <option
+                *ngFor="let room of roomTypeOptions"
+                [value]="room.roomtypeid"
+              >
+                {{ formatDropdownText(room.roomtype) }}
               </option>
             </select>
             <div *ngIf="isFieldInvalid('roomType')" class="error-message">
@@ -835,8 +838,11 @@
               [class.is-invalid]="isFieldInvalid('planType')"
             >
               <option value="">Select Plan Type</option>
-              <option *ngFor="let option of planTypeOptions" [value]="option">
-                {{ option }}
+              <option
+                *ngFor="let plan of planTypeOptions"
+                [value]="plan.paymentplanid"
+              >
+                {{ formatDropdownText(plan.plantype) }}
               </option>
             </select>
             <div *ngIf="isFieldInvalid('planType')" class="error-message">
@@ -873,7 +879,9 @@
 
       <!-- Action Buttons -->
       <div class="form-actions">
-        <button type="submit" class="btn-primary">Complete Registration</button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+          {{ isSubmitting ? "Submitting..." : "Complete Registration" }}
+        </button>
       </div>
     </form>
   </div>

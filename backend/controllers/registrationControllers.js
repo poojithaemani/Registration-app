@@ -157,7 +157,7 @@ export const createRegistration = async (req, res) => {
       `
   SELECT programid
   FROM programs
-  WHERE LOWER(programname) = LOWER(TRIM($1))
+  WHERE programid = $1
   `,
       [enrollmentProgramDetails.programType]
     );
@@ -167,7 +167,7 @@ export const createRegistration = async (req, res) => {
       `
   SELECT roomtypeid
   FROM roomtypes
-  WHERE LOWER(roomtype) = LOWER(TRIM($1))
+  WHERE roomtypeid = $1
   `,
       [enrollmentProgramDetails.roomType]
     );
@@ -205,7 +205,7 @@ export const createRegistration = async (req, res) => {
       `
   SELECT paymentplanid
   FROM paymentplan
-  WHERE LOWER(plantype) = LOWER(TRIM($1))
+  WHERE paymentplanid = $1
   `,
       [enrollmentProgramDetails.planType]
     );

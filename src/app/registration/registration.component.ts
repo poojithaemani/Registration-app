@@ -13,7 +13,12 @@ import {
   RegistrationDataService,
   RegistrationData,
 } from '../services/registration-data.service';
-import { ApiService } from '../services/api.service';
+import {
+  ApiService,
+  Program,
+  RoomType,
+  PaymentPlan,
+} from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
 /**
  * RegistrationComponent handles the multi-step student registration form
@@ -36,22 +41,18 @@ import { NotificationService } from '../services/notification.service';
 export class RegistrationComponent implements OnInit {
   registrationForm!: FormGroup; // Reactive form for registration data
   submitted = false; // Tracks if form has been submitted for validation display
+  isSubmitting = false; // Tracks if form is currently being submitted
   errorMessage = ''; // Stores form-level error messages
   successMessage = ''; // Stores success messages
   usStates: USState[] = []; // List of US states for dropdown selection
 
   // Dropdown options for form field selections
   phoneTypeOptions = ['Cell', 'Home', 'Work', 'Other'];
-  programTypeOptions = [
-    'fullTime',
-    'schoolDay',
-    'threeDayProgram',
-    'halfDayProgram',
-  ];
-  roomTypeOptions = ['infant', 'toddler', 'primary'];
+  programTypeOptions: Program[] = [];
+  roomTypeOptions: RoomType[] = [];
   relationshipOptions = ['Father', 'Mother', 'Guardian'];
   genderOptions = ['Male', 'Female'];
-  planTypeOptions = ['monthly', 'quarterly', 'bi-annual', 'annual'];
+  planTypeOptions: PaymentPlan[] = [];
 
   minDateOfBirth = new Date(2000, 0, 1);
 
@@ -86,6 +87,7 @@ export class RegistrationComponent implements OnInit {
    */
   ngOnInit(): void {
     this.initializeForm();
+    this.loadDropdownOptions();
   }
 
   /**
@@ -94,6 +96,7 @@ export class RegistrationComponent implements OnInit {
    * All required fields have Validators.required, optional fields are empty validators
    * Includes custom validators for email, phone, zip code formats
    */
+
   initializeForm(): void {
     this.registrationForm = this.formBuilder.group({
       // Child Info
@@ -203,6 +206,36 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
+   * Loads dropdown options for program type, room type, and plan type
+   * Calls getAllPrograms, getAllRoomTypes, and getAllPlans APIs and
+   * maps the responses to the respective dropdown options arrays
+   * If any of the calls fail, an error notification is displayed
+   */
+  loadDropdownOptions(): void {
+    this.apiService.getAllPrograms().subscribe({
+      next: (data) => {
+        this.programTypeOptions = data;
+      },
+      error: () => this.notificationService.error('Failed to load programs'),
+    });
+
+    this.apiService.getAllRoomTypes().subscribe({
+      next: (data) => {
+        this.roomTypeOptions = data;
+      },
+      error: () => this.notificationService.error('Failed to load room types'),
+    });
+
+    this.apiService.getAllPlans().subscribe({
+      next: (data) => {
+        this.planTypeOptions = data;
+      },
+      error: () =>
+        this.notificationService.error('Failed to load payment plans'),
+    });
+  }
+
+  /**
    * Gets today's date in ISO format (YYYY-MM-DD)
    * Used as default value for enrollment date field
    * @returns {string} Today's date in ISO format
@@ -219,6 +252,17 @@ export class RegistrationComponent implements OnInit {
    */
   getMinDateOfBirth(): string {
     return this.minDateOfBirth.toISOString().split('T')[0];
+  }
+
+  /**
+   * Formats a camelCase string to a capitalized, space-separated string
+   * @param text The text to format
+   * @returns The formatted text
+   */
+  formatDropdownText(text: string): string {
+    if (!text) return '';
+    const spacedText = text.replace(/([A-Z])/g, ' $1');
+    return spacedText.charAt(0).toUpperCase() + spacedText.slice(1);
   }
 
   /**
@@ -394,7 +438,7 @@ export class RegistrationComponent implements OnInit {
    * Formats phone numbers and collects all form data into RegistrationData object
    * Saves data to service and navigates to edit-registration page on success
    */
-  onCompleteRegistration(): void {
+  submitRegistration(): void {
     this.submitted = true;
     this.errorMessage = '';
 
@@ -578,10 +622,10 @@ export class RegistrationComponent implements OnInit {
       enrollmentProgramDetails: {
         schoolDay: '',
         programStatus: '',
-        programType: this.registrationForm.get('programType')?.value,
+        programType: Number(this.registrationForm.get('programType')?.value),
         enrollmentDate: this.registrationForm.get('enrollmentDate')?.value,
-        roomType: this.registrationForm.get('roomType')?.value,
-        planType: this.registrationForm.get('planType')?.value,
+        roomType: Number(this.registrationForm.get('roomType')?.value),
+        planType: Number(this.registrationForm.get('planType')?.value),
         nextPaymentDue: new Date(),
       },
     };
