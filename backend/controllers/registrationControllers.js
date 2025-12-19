@@ -173,7 +173,14 @@ export const createRegistration = async (req, res) => {
     );
 
     if (!programRes.rows.length || !roomRes.rows.length) {
-      throw new Error("Invalid program or room type");
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        error: "Invalid program or room type",
+        detail: {
+          programType: enrollmentProgramDetails?.programType,
+          roomType: enrollmentProgramDetails?.roomType,
+        },
+      });
     }
 
     // Enrollment Plan (mapping table)
@@ -187,7 +194,10 @@ export const createRegistration = async (req, res) => {
     );
 
     if (!planRes.rows.length) {
-      throw new Error("No enrollment plan found for selected program & room");
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        error: "No enrollment plan found for selected program & room",
+      });
     }
 
     // Payment Plan
@@ -201,7 +211,11 @@ export const createRegistration = async (req, res) => {
     );
 
     if (!paymentRes.rows.length) {
-      throw new Error("Invalid payment plan type");
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        error: "Invalid payment plan type",
+        detail: { planType: enrollmentProgramDetails?.planType },
+      });
     }
 
     // 7️ Registration

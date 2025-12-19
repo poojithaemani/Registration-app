@@ -284,7 +284,14 @@ export class ViewStudentsComponent implements OnInit {
     }
 
     this.isSaving = true;
-    const childId = this.route.snapshot.paramMap.get('id');
+    const childId = this.route.snapshot.paramMap.get('childId');
+    if (!childId) {
+      this.notificationService.error(
+        'Unable to determine student id for update'
+      );
+      this.isSaving = false;
+      return;
+    }
 
     const updateData = {
       childInfo: {
