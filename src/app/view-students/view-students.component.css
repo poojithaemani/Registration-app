@@ -124,6 +124,25 @@
   border-color: #e74c3c;
 }
 
+/* Make cancel button visually red by default */
+.btn-cancel {
+  background: #e74c3c;
+  color: white;
+  border-color: #e74c3c;
+}
+
+.btn-cancel:hover {
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
+/* Stronger selector to ensure cancel button shows red by default in header/action area */
+.view-header .action-buttons .btn-cancel {
+  background: #e74c3c;
+  color: white;
+  border-color: #e74c3c;
+}
+
 /* Loading State */
 .loading-container {
   display: flex;

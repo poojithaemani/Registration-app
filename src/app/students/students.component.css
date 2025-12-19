@@ -8,6 +8,21 @@
 .header-section {
   margin-bottom: 2rem;
   animation: slideDown 0.5s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .page-title {
@@ -114,6 +129,22 @@
   box-shadow: 0 6px 20px rgba(255, 140, 66, 0.6);
 }
 
+/* Logout button style (header top-right) */
+.btn-logout {
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: transparent;
+  color: #ff8c42;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn-logout:hover {
+  background: rgba(255, 140, 66, 0.08);
+  color: #ff7028;
+}
+
 .btn-primary:active {
   transform: translateY(0);
 }
@@ -142,7 +173,7 @@
 .table-wrapper {
   background: white;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: auto; 
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
   animation: fadeIn 0.5s ease-out;
@@ -151,6 +182,7 @@
 .students-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; 
   font-size: 0.95rem;
 }
 
@@ -236,15 +268,26 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  white-space: normal;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .guardian-name {
   font-weight: 500;
-  display: block;
-  white-space: normal;
+  display: flex; 
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.email {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .student-avatar {
@@ -505,12 +548,6 @@
   .pagination-info,
   .pagination-controls {
     justify-content: space-between;
-  }
-
-  .student-name,
-  .guardian-name {
-    flex-direction: column;
-    align-items: flex-start;
   }
 
   .student-avatar {

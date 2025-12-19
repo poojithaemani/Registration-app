@@ -1,8 +1,13 @@
 <div class="students-container">
   <!-- Header Section -->
   <div class="header-section">
-    <h1 class="page-title">Student Management</h1>
-    <p class="page-subtitle">Manage and view all enrolled students</p>
+    <div class="header-left">
+      <h1 class="page-title">Student Management</h1>
+      <p class="page-subtitle">Manage and view all enrolled students</p>
+    </div>
+    <div class="header-right">
+      <button class="btn-logout" (click)="navigateToLogin()">Logout</button>
+    </div>
   </div>
 
   <!-- Search and Enroll Section -->
@@ -18,9 +23,6 @@
       <span class="search-icon">🔍</span>
     </div>
     <div class="enroll-section">
-      <button class="back-to-login" (click)="navigateToLogin()">
-        ← Back to Login
-      </button>
       <button class="btn-primary" (click)="enrollNewStudent()">
         + Enroll New Student
       </button>

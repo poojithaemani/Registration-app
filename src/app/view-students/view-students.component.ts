@@ -251,9 +251,18 @@ export class ViewStudentsComponent implements OnInit {
    */
   enableEditMode(): void {
     this.isEditMode = true;
-    // Enable all form controls except enrollment fields
+    const keepDisabled = new Set([
+      'enrollmentPlanId',
+      'programType',
+      'roomType',
+      'planType',
+      'enrollmentStatus',
+      'paymentPlanId',
+      'enrollmentAmount',
+    ]);
+
     Object.keys(this.studentForm.controls).forEach((key) => {
-      if (!key.startsWith('enrollment')) {
+      if (!key.startsWith('enrollment') && !keepDisabled.has(key)) {
         this.studentForm.get(key)?.enable();
       }
     });
@@ -355,6 +364,10 @@ export class ViewStudentsComponent implements OnInit {
           );
           this.isSaving = false;
           this.isEditMode = false;
+          // Disable all controls after successful save so fields are read-only
+          Object.keys(this.studentForm.controls).forEach((key) => {
+            this.studentForm.get(key)?.disable();
+          });
           this.loadStudentDetails();
         }
       },

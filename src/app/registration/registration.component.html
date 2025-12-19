@@ -36,7 +36,7 @@
               type="text"
               formControlName="childFirstName"
               class="form-control"
-              placeholder="Enter first name (letters only)"
+              placeholder="Enter first name"
               [class.is-invalid]="isFieldInvalid('childFirstName')"
             />
             <div *ngIf="isFieldInvalid('childFirstName')" class="error-message">
@@ -51,7 +51,7 @@
               type="text"
               formControlName="childMiddleName"
               class="form-control"
-              placeholder="Enter middle name (letters only)"
+              placeholder="Enter middle name"
             />
             <div
               *ngIf="isFieldInvalid('childMiddleName')"
@@ -68,7 +68,7 @@
               type="text"
               formControlName="childLastName"
               class="form-control"
-              placeholder="Enter last name (letters only)"
+              placeholder="Enter last name"
               [class.is-invalid]="isFieldInvalid('childLastName')"
             />
             <div *ngIf="isFieldInvalid('childLastName')" class="error-message">
