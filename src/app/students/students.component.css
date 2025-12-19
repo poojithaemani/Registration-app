@@ -318,10 +318,10 @@
 }
 
 .action {
-  text-align: center;
-  display: flex;
+  text-align: flex-start;
+  /* display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center; */
   min-height: 40px;
 }
 

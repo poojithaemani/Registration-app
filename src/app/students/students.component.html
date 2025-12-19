@@ -43,57 +43,56 @@
 
   <!-- Students Table -->
   <div *ngIf="!isLoading && paginatedStudents.length > 0" class="table-wrapper">
-  <table class="students-table">
-    <thead>
-      <tr>
-        <!-- <th></th> -->
-        <th>Student Name</th>
-        <th>Guardian Name</th>
-        <th>Guardian Email</th>
-        <th>Action</th>
-      </tr>
-    </thead>
+    <table class="students-table">
+      <thead>
+        <tr>
+          <!-- <th></th> -->
+          <th>Student Name</th>
+          <th>Guardian Name</th>
+          <th>Guardian Email</th>
+          <th>Action</th>
+        </tr>
+      </thead>
 
-    <tbody>
-      <tr *ngFor="let student of paginatedStudents" class="table-row">
-        <!-- <td>
+      <tbody>
+        <tr *ngFor="let student of paginatedStudents" class="table-row">
+          <!-- <td>
           <span class="student-avatar">
             {{ student.childInfo?.firstName ? student.childInfo.firstName[0] : 'S' }}
           </span>
         </td> -->
-        <!-- Student Name -->
-        <td class="student-name">
-          {{ student.childInfo?.firstName || 'N/A' }}
-          {{ student.childInfo?.lastName || '' }}
-        </td>
+          <!-- Student Name -->
+          <td class="student-name">
+            {{ student.childInfo?.firstName || "N/A" }}
+            {{ student.childInfo?.lastName || "" }}
+          </td>
 
-        <!-- Guardian Name -->
-        <td class="guardian-name">
-          {{ student.parentGuardianInfo?.firstName || 'N/A' }}
-          {{ student.parentGuardianInfo?.lastName || '' }}
-        </td>
+          <!-- Guardian Name -->
+          <td class="guardian-name">
+            {{ student.parentGuardianInfo?.firstName || "N/A" }}
+            {{ student.parentGuardianInfo?.lastName || "" }}
+          </td>
 
-        <!-- Guardian Email -->
-        <td class="email">
-          {{ student.parentGuardianInfo?.email || 'N/A' }}
-        </td>
+          <!-- Guardian Email -->
+          <td class="email">
+            {{ student.parentGuardianInfo?.email || "N/A" }}
+          </td>
 
-        <!-- Action -->
-        <td class="action">
-          <button
-            type="button"
-            class="btn-view"
-            (click)="viewStudentDetails(student.childInfo?.childId)"
-            [disabled]="!student.childInfo?.childId"
-          >
-            View Details
-          </button>
-        </td>
-
-      </tr>
-    </tbody>
-  </table>
-</div>
+          <!-- Action -->
+          <td class="action">
+            <button
+              type="button"
+              class="btn-view"
+              (click)="viewStudentDetails(student.childInfo?.childId)"
+              [disabled]="!student.childInfo?.childId"
+            >
+              View Details
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- No Results State -->
   <div
