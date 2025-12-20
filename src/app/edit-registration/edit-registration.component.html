@@ -157,6 +157,8 @@
               type="date"
               formControlName="dateOfBirth"
               class="form-control"
+              [min]="'2000-01-01'"
+              [max]="todayDate.toISOString().split('T')[0]"
               [class.is-invalid]="isFieldInvalid('dateOfBirth')"
               [disabled]="!isEditMode"
             />

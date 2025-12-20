@@ -37,6 +37,8 @@ export class ViewStudentsComponent implements OnInit {
   programTypeOptions: any[] = [];
   roomTypeOptions: any[] = [];
   planTypeOptions: any[] = [];
+  minDateOfBirth = new Date(2000, 0, 1);
+  todayDate = new Date();
 
   constructor(
     private route: ActivatedRoute,
