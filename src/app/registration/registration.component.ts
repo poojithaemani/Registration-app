@@ -387,10 +387,10 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
-   * Sanitizes input by removing invalid characters
+   * Formats name input by removing invalid characters
    * For name fields: keeps only letters, spaces, hyphens, apostrophes
    */
-  sanitizeNameInput(event: any, fieldName: string) {
+  formatNameInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     // Allow only letters, spaces, hyphens, and apostrophes
@@ -400,10 +400,9 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
-   * Sanitizes phone number input
-   * For phone fields: keeps only digits, limits to 10
+   * Formats phone number input: keeps only digits, limits to 10
    */
-  sanitizePhoneInput(event: any, fieldName: string) {
+  formatPhoneInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     // Remove all non-digits
@@ -415,10 +414,9 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
-   * Sanitizes zip code input
-   * For zip fields: keeps only digits, limits to 5
+   * Formats zip code input: keeps only digits, limits to 5
    */
-  sanitizeZipInput(event: any, fieldName: string) {
+  formatZipCode(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     // Remove all non-digits

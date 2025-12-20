@@ -603,9 +603,9 @@ export class ViewStudentsComponent implements OnInit {
   }
 
   /**
-   * Sanitizes name input - removes non-letter characters
+   * Formats name input - removes non-letter characters
    */
-  sanitizeNameInput(event: any, fieldName: string) {
+  formatNameInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     value = value.replace(/[^a-zA-Z\s'-]/g, '');
@@ -616,9 +616,9 @@ export class ViewStudentsComponent implements OnInit {
   }
 
   /**
-   * Sanitizes phone input - keeps only digits, limits to 10
+   * Formats phone input - keeps only digits, limits to 10
    */
-  sanitizePhoneInput(event: any, fieldName: string) {
+  formatPhoneNumber(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     value = value.replace(/\D/g, '');
@@ -630,9 +630,9 @@ export class ViewStudentsComponent implements OnInit {
   }
 
   /**
-   * Sanitizes zip code input - keeps only digits, limits to 5
+   * Formats zip code input - keeps only digits, limits to 5
    */
-  sanitizeZipInput(event: any, fieldName: string) {
+  formatZipCode(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     value = value.replace(/\D/g, '');

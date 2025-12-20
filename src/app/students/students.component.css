@@ -175,7 +175,7 @@
 .table-wrapper {
   background: white;
   border-radius: 12px;
-  overflow: auto; 
+  overflow: auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
   animation: fadeIn 0.5s ease-out;
@@ -184,7 +184,7 @@
 .students-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; 
+  table-layout: fixed;
   font-size: 0.95rem;
 }
 
@@ -427,7 +427,7 @@
 .items-per-page {
   display: flex;
   align-items: center;
-  gap: 0.10rem;
+  gap: 0.1rem;
 }
 
 .items-per-page label {

@@ -304,7 +304,7 @@
               class="form-control"
               placeholder="12345"
               (keypress)="validationService.keyPressNumbers($event, 5)"
-              (input)="sanitizeZipInput($event, 'parentZipCode')"
+              (input)="formatZipCode($event, 'parentZipCode')"
               [class.is-invalid]="isFieldInvalid('parentZipCode')"
             />
             <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
@@ -346,7 +346,7 @@
                 class="form-control"
                 placeholder="555-555-5555"
                 maxlength="10"
-                (input)="sanitizePhoneInput($event, 'parentPhoneNumber')"
+                (input)="formatPhoneInput($event, 'parentPhoneNumber')"
                 [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
               />
             </div>
@@ -359,7 +359,9 @@
           </div>
 
           <div class="form-group">
-            <label for="parentAlternatePhoneType">Alternate Phone Type (optional)</label>
+            <label for="parentAlternatePhoneType"
+              >Alternate Phone Type (optional)</label
+            >
             <select
               id="parentAlternatePhoneType"
               formControlName="parentAlternatePhoneType"
@@ -536,7 +538,7 @@
               class="form-control"
               placeholder="12345"
               (keypress)="validationService.keyPressNumbers($event, 5)"
-              (input)="sanitizeZipInput($event, 'medicalZipCode')"
+              (input)="formatZipCode($event, 'medicalZipCode')"
               [class.is-invalid]="isFieldInvalid('medicalZipCode')"
             />
             <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
@@ -593,7 +595,9 @@
           </div>
 
           <div class="form-group">
-            <label for="medicalAlternatePhoneType">Alternate Phone Type (optional)</label>
+            <label for="medicalAlternatePhoneType"
+              >Alternate Phone Type (optional)</label
+            >
             <select
               id="medicalAlternatePhoneType"
               formControlName="medicalAlternatePhoneType"
@@ -741,7 +745,7 @@
               class="form-control"
               placeholder="12345"
               (keypress)="validationService.keyPressNumbers($event, 5)"
-              (input)="sanitizeZipInput($event, 'careFacilityZipCode')"
+              (input)="formatZipCode($event, 'careFacilityZipCode')"
               [class.is-invalid]="isFieldInvalid('careFacilityZipCode')"
             />
             <div
@@ -815,8 +819,15 @@
               formControlName="programType"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('programType')"
+              [disabled]="programTypeOptions.length === 0"
             >
-              <option value="">Select Program Type</option>
+              <option value="">
+                {{
+                  programTypeOptions.length
+                    ? "Select Program Type"
+                    : "Loading..."
+                }}
+              </option>
               <option
                 *ngFor="let program of programTypeOptions"
                 [value]="program.programid"
@@ -836,8 +847,11 @@
               formControlName="roomType"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('roomType')"
+              [disabled]="roomTypeOptions.length === 0"
             >
-              <option value="">Select Room Type</option>
+              <option value="">
+                {{ roomTypeOptions.length ? "Select Room Type" : "Loading..." }}
+              </option>
               <option
                 *ngFor="let room of roomTypeOptions"
                 [value]="room.roomtypeid"
@@ -857,8 +871,11 @@
               formControlName="planType"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('planType')"
+              [disabled]="planTypeOptions.length === 0"
             >
-              <option value="">Select Plan Type</option>
+              <option value="">
+                {{ planTypeOptions.length ? "Select Plan Type" : "Loading..." }}
+              </option>
               <option
                 *ngFor="let plan of planTypeOptions"
                 [value]="plan.paymentplanid"

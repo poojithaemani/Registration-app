@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError, retry, shareReplay } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { RegistrationData } from './registration-data.service';
 
@@ -30,6 +31,10 @@ export interface RoomType {
 })
 export class ApiService {
   private apiUrl = environment.apiURL;
+  // cached observables to prevent repeated network requests and race conditions
+  private programs$?: Observable<Program[]>;
+  private plans$?: Observable<PaymentPlan[]>;
+  private roomTypes$?: Observable<RoomType[]>;
 
   constructor(private http: HttpClient) {}
 
@@ -141,15 +146,40 @@ export class ApiService {
    * @returns Observable with array of all plans, programs, and room types
    */
   getAllPlans(): Observable<PaymentPlan[]> {
-    return this.http.get<PaymentPlan[]>(`${this.apiUrl}/payment-plans`);
+    if (!this.plans$) {
+      this.plans$ = this.http
+        .get<PaymentPlan[]>(`${this.apiUrl}/payment-plans`)
+        .pipe(
+          retry(1),
+          catchError(() => of([])),
+          shareReplay({ bufferSize: 1, refCount: true })
+        );
+    }
+    return this.plans$;
   }
 
   getAllPrograms(): Observable<Program[]> {
-    return this.http.get<Program[]>(`${this.apiUrl}/programs`);
+    if (!this.programs$) {
+      this.programs$ = this.http.get<Program[]>(`${this.apiUrl}/programs`).pipe(
+        retry(1),
+        catchError(() => of([])),
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+    }
+    return this.programs$;
   }
 
   getAllRoomTypes(): Observable<RoomType[]> {
-    return this.http.get<RoomType[]>(`${this.apiUrl}/room-types`);
+    if (!this.roomTypes$) {
+      this.roomTypes$ = this.http
+        .get<RoomType[]>(`${this.apiUrl}/room-types`)
+        .pipe(
+          retry(1),
+          catchError(() => of([])),
+          shareReplay({ bufferSize: 1, refCount: true })
+        );
+    }
+    return this.roomTypes$;
   }
 
   /**Update plan, program, or room type information using PUT
