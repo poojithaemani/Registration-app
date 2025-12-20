@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes.js";
 import registrationRoutes from "./routes/registrationRoutes.js";
 import studentsRoutes from "./routes/studentsRoutes.js";
+import planRoutes from "./routes/planRoutes.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(express.json());
 app.use("/api", userRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use("/api/students", studentsRoutes);
+app.use("/api", planRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -13,7 +13,12 @@ import {
   RegistrationDataService,
   RegistrationData,
 } from '../services/registration-data.service';
-import { ApiService } from '../services/api.service';
+import {
+  ApiService,
+  Program,
+  RoomType,
+  PaymentPlan,
+} from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
 /**
  * RegistrationComponent handles the multi-step student registration form
@@ -36,22 +41,18 @@ import { NotificationService } from '../services/notification.service';
 export class RegistrationComponent implements OnInit {
   registrationForm!: FormGroup; // Reactive form for registration data
   submitted = false; // Tracks if form has been submitted for validation display
+  isSubmitting = false; // Tracks if form is currently being submitted
   errorMessage = ''; // Stores form-level error messages
   successMessage = ''; // Stores success messages
   usStates: USState[] = []; // List of US states for dropdown selection
 
   // Dropdown options for form field selections
   phoneTypeOptions = ['Cell', 'Home', 'Work', 'Other'];
-  programTypeOptions = [
-    'fullTime',
-    'schoolDay',
-    'threeDayProgram',
-    'halfDayProgram',
-  ];
-  roomTypeOptions = ['infant', 'toddler', 'primary'];
+  programTypeOptions: Program[] = [];
+  roomTypeOptions: RoomType[] = [];
   relationshipOptions = ['Father', 'Mother', 'Guardian'];
   genderOptions = ['Male', 'Female'];
-  planTypeOptions = ['monthly', 'quarterly', 'bi-annual', 'annual'];
+  planTypeOptions: PaymentPlan[] = [];
 
   minDateOfBirth = new Date(2000, 0, 1);
 
@@ -71,7 +72,7 @@ export class RegistrationComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
-    private validationService: ValidationService,
+    public validationService: ValidationService,
     private usStatesService: USStatesService,
     private registrationDataService: RegistrationDataService,
     private apiService: ApiService,
@@ -86,6 +87,7 @@ export class RegistrationComponent implements OnInit {
    */
   ngOnInit(): void {
     this.initializeForm();
+    this.loadDropdownOptions();
   }
 
   /**
@@ -94,6 +96,7 @@ export class RegistrationComponent implements OnInit {
    * All required fields have Validators.required, optional fields are empty validators
    * Includes custom validators for email, phone, zip code formats
    */
+
   initializeForm(): void {
     this.registrationForm = this.formBuilder.group({
       // Child Info
@@ -130,7 +133,7 @@ export class RegistrationComponent implements OnInit {
         '',
         [Validators.required, this.zipCodeValidator.bind(this)],
       ],
-      parentEmail: ['', [Validators.required, Validators.email]],
+      parentEmail: ['', [Validators.required, this.emailValidator.bind(this)]],
       parentPhoneType: ['', Validators.required],
       parentPhoneNumber: [
         '',
@@ -144,6 +147,7 @@ export class RegistrationComponent implements OnInit {
         '',
         [Validators.required, this.nameValidator.bind(this)],
       ],
+      physicianMiddleName: ['', this.nameValidator.bind(this)],
       physicianLastName: [
         '',
         [Validators.required, this.nameValidator.bind(this)],
@@ -203,6 +207,63 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
+   * Loads dropdown options for program type, room type, and plan type
+   * Calls getAllPrograms, getAllRoomTypes, and getAllPlans APIs and
+   * maps the responses to the respective dropdown options arrays
+   * If any of the calls fail, an error notification is displayed
+   */
+  loadDropdownOptions(): void {
+    this.apiService.getAllPrograms().subscribe({
+      next: (data) => {
+        this.programTypeOptions = this.filterExcludedOptions(
+          data,
+          'programname'
+        );
+      },
+      error: () => this.notificationService.error('Failed to load programs'),
+    });
+
+    this.apiService.getAllRoomTypes().subscribe({
+      next: (data) => {
+        this.roomTypeOptions = this.filterExcludedOptions(data, 'roomtype');
+      },
+      error: () => this.notificationService.error('Failed to load room types'),
+    });
+
+    this.apiService.getAllPlans().subscribe({
+      next: (data) => {
+        this.planTypeOptions = this.filterExcludedOptions(data, 'plantype');
+      },
+      error: () =>
+        this.notificationService.error('Failed to load payment plans'),
+    });
+  }
+
+  filterExcludedOptions(list: any[], field: string): any[] {
+    if (!Array.isArray(list)) return [];
+    const exclude = ['summer', 'delux', 'deluxe'];
+    return list.filter((item) => {
+      const val = (item[field] || '').toString().toLowerCase();
+      return !exclude.some((ex) => val.includes(ex));
+    });
+  }
+
+  scrollToFirstInvalid() {
+    setTimeout(() => {
+      const el = document.querySelector('.is-invalid');
+      if (el && (el as HTMLElement).focus) {
+        (el as HTMLElement).scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        try {
+          (el as HTMLElement).focus();
+        } catch (e) {}
+      }
+    }, 50);
+  }
+
+  /**
    * Gets today's date in ISO format (YYYY-MM-DD)
    * Used as default value for enrollment date field
    * @returns {string} Today's date in ISO format
@@ -222,6 +283,17 @@ export class RegistrationComponent implements OnInit {
   }
 
   /**
+   * Formats a camelCase string to a capitalized, space-separated string
+   * @param text The text to format
+   * @returns The formatted text
+   */
+  formatDropdownText(text: string): string {
+    if (!text) return '';
+    const spacedText = text.replace(/([A-Z])/g, ' $1');
+    return spacedText.charAt(0).toUpperCase() + spacedText.slice(1);
+  }
+
+  /**
    * Validates name fields to ensure they contain only letters, spaces, hyphens, and apostrophes
    * Empty values are allowed (for optional fields like middle name)
    * Custom validator for use in FormBuilder
@@ -235,6 +307,14 @@ export class RegistrationComponent implements OnInit {
     if (!nameRegex.test(trimmed)) {
       return { invalidName: true };
     }
+    return null;
+  }
+
+  /** Custom email validator using project's regex */
+  emailValidator(control: any) {
+    if (!control.value) return null;
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!re.test(control.value)) return { email: true };
     return null;
   }
 
@@ -280,9 +360,11 @@ export class RegistrationComponent implements OnInit {
    */
   phoneValidator(control: any) {
     if (!control.value) return null;
-    const phoneRegex = /^\d{10}$/;
     const digitsOnly = control.value.replace(/\D/g, '');
     if (digitsOnly.length !== 10) {
+      return { invalidPhone: true };
+    }
+    if (/^0+$/.test(digitsOnly)) {
       return { invalidPhone: true };
     }
     return null;
@@ -294,9 +376,11 @@ export class RegistrationComponent implements OnInit {
    */
   zipCodeValidator(control: any) {
     if (!control.value) return null;
-    const zipRegex = /^\d{5}$/;
     const digitsOnly = control.value.replace(/\D/g, '');
     if (digitsOnly.length !== 5) {
+      return { invalidZipCode: true };
+    }
+    if (/^0+$/.test(digitsOnly)) {
       return { invalidZipCode: true };
     }
     return null;
@@ -394,7 +478,7 @@ export class RegistrationComponent implements OnInit {
    * Formats phone numbers and collects all form data into RegistrationData object
    * Saves data to service and navigates to edit-registration page on success
    */
-  onCompleteRegistration(): void {
+  submitRegistration(): void {
     this.submitted = true;
     this.errorMessage = '';
 
@@ -451,6 +535,7 @@ export class RegistrationComponent implements OnInit {
     if (!allFieldsValid) {
       this.errorMessage =
         'Please fill all required fields to complete your registration';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -461,6 +546,7 @@ export class RegistrationComponent implements OnInit {
       )
     ) {
       this.errorMessage = 'Parent phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -470,6 +556,7 @@ export class RegistrationComponent implements OnInit {
       )
     ) {
       this.errorMessage = 'Medical phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -479,6 +566,7 @@ export class RegistrationComponent implements OnInit {
       )
     ) {
       this.errorMessage = 'Emergency contact phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -491,6 +579,7 @@ export class RegistrationComponent implements OnInit {
       !this.validationService.isValidPhoneNumber(parentAlternate)
     ) {
       this.errorMessage = 'Parent alternate phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -502,6 +591,7 @@ export class RegistrationComponent implements OnInit {
       !this.validationService.isValidPhoneNumber(medicalAlternate)
     ) {
       this.errorMessage = 'Medical alternate phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -542,6 +632,8 @@ export class RegistrationComponent implements OnInit {
       medicalInfo: {
         physicianFirstName:
           this.registrationForm.get('physicianFirstName')?.value,
+        physicianMiddleName: this.registrationForm.get('physicianMiddleName')
+          ?.value,
         physicianLastName:
           this.registrationForm.get('physicianLastName')?.value,
         address1: this.registrationForm.get('medicalAddress1')?.value,
@@ -578,13 +670,14 @@ export class RegistrationComponent implements OnInit {
       enrollmentProgramDetails: {
         schoolDay: '',
         programStatus: '',
-        programType: this.registrationForm.get('programType')?.value,
+        programType: Number(this.registrationForm.get('programType')?.value),
         enrollmentDate: this.registrationForm.get('enrollmentDate')?.value,
-        roomType: this.registrationForm.get('roomType')?.value,
-        planType: this.registrationForm.get('planType')?.value,
+        roomType: Number(this.registrationForm.get('roomType')?.value),
+        planType: Number(this.registrationForm.get('planType')?.value),
         nextPaymentDue: new Date(),
       },
     };
+    this.isSubmitting = true;
     this.apiService.registerStudent(registrationData).subscribe({
       next: (response) => {
         // Save the registration data (both response and local data for backup)
@@ -609,10 +702,13 @@ export class RegistrationComponent implements OnInit {
           this.successMessage = '';
           this.router.navigate(['/edit-registration']);
         }, 3000);
+        this.isSubmitting = false;
       },
       error: (err) => {
+        this.isSubmitting = false;
         this.errorMessage = 'Registration failed';
         this.notificationService.error('Registration failed');
+        this.scrollToFirstInvalid();
       },
     });
   }
