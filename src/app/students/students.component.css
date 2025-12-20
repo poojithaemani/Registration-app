@@ -184,13 +184,14 @@
 .students-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
   font-size: 0.95rem;
 }
 
 .students-table thead {
   background: #ff8c42;
   color: white;
+  display: table-header-group;
 }
 
 .students-table th {
@@ -321,9 +322,6 @@
 
 .action {
   text-align: flex-start;
-  /* display: flex;
-  justify-content: center;
-  align-items: center; */
   min-height: 40px;
 }
 
