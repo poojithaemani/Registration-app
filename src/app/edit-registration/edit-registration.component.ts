@@ -95,7 +95,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
-    private validationService: ValidationService,
+    public validationService: ValidationService,
     private usStatesService: USStatesService,
     private registrationDataService: RegistrationDataService,
     private apiService: ApiService,
@@ -1052,6 +1052,9 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
     if (digitsOnly.length !== 10) {
       return { invalidPhone: true };
     }
+    if (/^0+$/.test(digitsOnly)) {
+      return { invalidPhone: true };
+    }
     return null;
   }
 
@@ -1062,6 +1065,9 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
     if (!control.value) return null;
     const digitsOnly = control.value.replace(/\D/g, '');
     if (digitsOnly.length !== 5) {
+      return { invalidZipCode: true };
+    }
+    if (/^0+$/.test(digitsOnly)) {
       return { invalidZipCode: true };
     }
     return null;

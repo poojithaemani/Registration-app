@@ -403,6 +403,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentZipCode')"
               [readonly]="!isEditMode"
+              (keypress)="validationService.keyPressNumbers($event, 5)"
               (input)="sanitizeZipInput($event, 'parentZipCode')"
             />
             <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
@@ -455,7 +456,7 @@
                 placeholder="(555) 555-5555"
                 maxlength="14"
                 (input)="sanitizePhoneInput($event, 'parentPhoneNumber')"
-                (keypress)="onPhoneKeypress($event, 'parentPhoneNumber')"
+                (keypress)="validationService.keyPressNumbers($event, 10)"
                 [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
                 [readonly]="!isEditMode"
               />
@@ -499,7 +500,7 @@
               placeholder="(555) 555-5555"
               maxlength="14"
               (input)="sanitizePhoneInput($event, 'parentAlternatePhoneNumber')"
-              (keypress)="onPhoneKeypress($event, 'parentAlternatePhoneNumber')"
+              (keypress)="validationService.keyPressNumbers($event, 10)"
               [readonly]="!isEditMode"
             />
           </div>
@@ -679,6 +680,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('medicalZipCode')"
               [readonly]="!isEditMode"
+              (keypress)="validationService.keyPressNumbers($event, 5)"
               (input)="sanitizeZipInput($event, 'medicalZipCode')"
             />
             <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
@@ -731,7 +733,7 @@
                 placeholder="(555) 555-5555"
                 maxlength="14"
                 (input)="sanitizePhoneInput($event, 'medicalPhoneNumber')"
-                (keypress)="onPhoneKeypress($event, 'medicalPhoneNumber')"
+                (keypress)="validationService.keyPressNumbers($event, 10)"
                 [class.is-invalid]="isFieldInvalid('medicalPhoneNumber')"
                 [readonly]="!isEditMode"
               />
@@ -777,9 +779,7 @@
               (input)="
                 sanitizePhoneInput($event, 'medicalAlternatePhoneNumber')
               "
-              (keypress)="
-                onPhoneKeypress($event, 'medicalAlternatePhoneNumber')
-              "
+              (keypress)="validationService.keyPressNumbers($event, 10)"
               [readonly]="!isEditMode"
             />
           </div>
@@ -925,6 +925,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('careFacilityZipCode')"
               [readonly]="!isEditMode"
+              (keypress)="validationService.keyPressNumbers($event, 5)"
               (input)="sanitizeZipInput($event, 'careFacilityZipCode')"
             />
             <div
@@ -980,7 +981,7 @@
                 placeholder="(555) 555-5555"
                 maxlength="14"
                 (input)="sanitizePhoneInput($event, 'emergencyPhoneNumber')"
-                (keypress)="onPhoneKeypress($event, 'emergencyPhoneNumber')"
+                (keypress)="validationService.keyPressNumbers($event, 10)"
                 [class.is-invalid]="isFieldInvalid('emergencyPhoneNumber')"
                 [readonly]="!isEditMode"
               />

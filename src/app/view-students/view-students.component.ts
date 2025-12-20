@@ -9,6 +9,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../services/api.service';
+import { ValidationService } from '../services/validation.service';
 import { forkJoin } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { USStatesService } from '../services/us-states.service';
@@ -43,7 +44,8 @@ export class ViewStudentsComponent implements OnInit {
     private apiService: ApiService,
     private notificationService: NotificationService,
     private usStatesService: USStatesService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    public validationService: ValidationService
   ) {}
 
   ngOnInit(): void {
@@ -536,6 +538,9 @@ export class ViewStudentsComponent implements OnInit {
     if (digitsOnly.length !== 10) {
       return { invalidPhone: true };
     }
+    if (/^0+$/.test(digitsOnly)) {
+      return { invalidPhone: true };
+    }
     return null;
   }
 
@@ -578,6 +583,9 @@ export class ViewStudentsComponent implements OnInit {
     if (!control.value) return null;
     const digitsOnly = control.value.replace(/\D/g, '');
     if (digitsOnly.length !== 5) {
+      return { invalidZipCode: true };
+    }
+    if (/^0+$/.test(digitsOnly)) {
       return { invalidZipCode: true };
     }
     return null;

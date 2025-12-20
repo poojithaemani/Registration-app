@@ -72,7 +72,7 @@ export class RegistrationComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
-    private validationService: ValidationService,
+    public validationService: ValidationService,
     private usStatesService: USStatesService,
     private registrationDataService: RegistrationDataService,
     private apiService: ApiService,
@@ -360,9 +360,11 @@ export class RegistrationComponent implements OnInit {
    */
   phoneValidator(control: any) {
     if (!control.value) return null;
-    const phoneRegex = /^\d{10}$/;
     const digitsOnly = control.value.replace(/\D/g, '');
     if (digitsOnly.length !== 10) {
+      return { invalidPhone: true };
+    }
+    if (/^0+$/.test(digitsOnly)) {
       return { invalidPhone: true };
     }
     return null;
@@ -374,9 +376,11 @@ export class RegistrationComponent implements OnInit {
    */
   zipCodeValidator(control: any) {
     if (!control.value) return null;
-    const zipRegex = /^\d{5}$/;
     const digitsOnly = control.value.replace(/\D/g, '');
     if (digitsOnly.length !== 5) {
+      return { invalidZipCode: true };
+    }
+    if (/^0+$/.test(digitsOnly)) {
       return { invalidZipCode: true };
     }
     return null;
