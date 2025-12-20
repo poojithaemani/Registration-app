@@ -94,16 +94,33 @@ export const updateStudent = async (req, res) => {
 
     // 3️ Update MEDICAL CONTACT information
     if (medicalInfo) {
+      // prefer explicit parts; fall back to splitting full name if necessary
+      let first = medicalInfo.physicianFirstName || null;
+      let middle = medicalInfo.physicianMiddleName || null;
+      let last = medicalInfo.physicianLastName || null;
+      if (!first && medicalInfo.physicianName) {
+        const parts = medicalInfo.physicianName.trim().split(/\s+/);
+        first = parts[0] || null;
+        if (parts.length === 2) {
+          last = parts[1] || null;
+        } else if (parts.length > 2) {
+          middle = parts.slice(1, -1).join(" ") || null;
+          last = parts.slice(-1)[0] || null;
+        }
+      }
+
       await client.query(
         `
         UPDATE medicalcontacts
-        SET physicianname = $1, addressline1 = $2, addressline2 = $3,
-            city = $4, state = $5, country = $6, zipcode = $7,
-            phonetype = $8, phonenumber = $9, countrycode = $10
-        WHERE childid = $11
+        SET physicianname = $1, middlename = $2, lastname = $3, addressline1 = $4, addressline2 = $5,
+            city = $6, state = $7, country = $8, zipcode = $9,
+            phonetype = $10, phonenumber = $11, countrycode = $12
+        WHERE childid = $13
         `,
         [
-          medicalInfo.physicianName || null,
+          first,
+          middle,
+          last,
           medicalInfo.address1 || null,
           medicalInfo.address2 || null,
           medicalInfo.city || null,
@@ -206,7 +223,9 @@ export const getAllStudents = async (req, res) => {
         
         -- Medical Information
         m.medicalcontactid,
-        m.physicianname,
+        m.physicianname AS physicianFirstName,
+        m.middlename AS physicianMiddleName,
+        m.lastname AS physicianLastName,
         m.addressline1 AS medicalAddressLine1,
         m.addressline2 AS medicalAddressLine2,
         m.city AS medicalCity,
@@ -304,7 +323,16 @@ export const getAllStudents = async (req, res) => {
           },
           medicalInfo: {
             medicalContactId: row.medicalcontactid,
-            physicianName: row.physicianname,
+            physicianFirstName: row.physicianfirstname,
+            physicianMiddleName: row.physicianmiddlename,
+            physicianLastName: row.physicianlastname,
+            physicianName: [
+              row.physicianfirstname,
+              row.physicianmiddlename,
+              row.physicianlastname,
+            ]
+              .filter(Boolean)
+              .join(" "),
             address1: row.medicaladdressline1,
             address2: row.medicaladdressline2,
             city: row.medicalcity,
@@ -402,7 +430,9 @@ export const getStudentById = async (req, res) => {
         
         -- Medical Information
         m.medicalcontactid,
-        m.physicianname,
+        m.physicianname AS physicianFirstName,
+        m.middlename AS physicianMiddleName,
+        m.lastname AS physicianLastName,
         m.addressline1 AS medicalAddressLine1,
         m.addressline2 AS medicalAddressLine2,
         m.city AS medicalCity,
@@ -491,7 +521,16 @@ export const getStudentById = async (req, res) => {
       },
       medicalInfo: {
         medicalContactId: row.medicalcontactid,
-        physicianName: row.physicianname,
+        physicianFirstName: row.physicianfirstname,
+        physicianMiddleName: row.physicianmiddlename,
+        physicianLastName: row.physicianlastname,
+        physicianName: [
+          row.physicianfirstname,
+          row.physicianmiddlename,
+          row.physicianlastname,
+        ]
+          .filter(Boolean)
+          .join(" "),
         address1: row.medicaladdressline1,
         address2: row.medicaladdressline2,
         city: row.medicalcity,

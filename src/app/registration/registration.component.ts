@@ -133,7 +133,7 @@ export class RegistrationComponent implements OnInit {
         '',
         [Validators.required, this.zipCodeValidator.bind(this)],
       ],
-      parentEmail: ['', [Validators.required, Validators.email]],
+      parentEmail: ['', [Validators.required, this.emailValidator.bind(this)]],
       parentPhoneType: ['', Validators.required],
       parentPhoneNumber: [
         '',
@@ -147,6 +147,7 @@ export class RegistrationComponent implements OnInit {
         '',
         [Validators.required, this.nameValidator.bind(this)],
       ],
+      physicianMiddleName: ['', this.nameValidator.bind(this)],
       physicianLastName: [
         '',
         [Validators.required, this.nameValidator.bind(this)],
@@ -214,25 +215,52 @@ export class RegistrationComponent implements OnInit {
   loadDropdownOptions(): void {
     this.apiService.getAllPrograms().subscribe({
       next: (data) => {
-        this.programTypeOptions = data;
+        this.programTypeOptions = this.filterExcludedOptions(
+          data,
+          'programname'
+        );
       },
       error: () => this.notificationService.error('Failed to load programs'),
     });
 
     this.apiService.getAllRoomTypes().subscribe({
       next: (data) => {
-        this.roomTypeOptions = data;
+        this.roomTypeOptions = this.filterExcludedOptions(data, 'roomtype');
       },
       error: () => this.notificationService.error('Failed to load room types'),
     });
 
     this.apiService.getAllPlans().subscribe({
       next: (data) => {
-        this.planTypeOptions = data;
+        this.planTypeOptions = this.filterExcludedOptions(data, 'plantype');
       },
       error: () =>
         this.notificationService.error('Failed to load payment plans'),
     });
+  }
+
+  filterExcludedOptions(list: any[], field: string): any[] {
+    if (!Array.isArray(list)) return [];
+    const exclude = ['summer', 'delux', 'deluxe'];
+    return list.filter((item) => {
+      const val = (item[field] || '').toString().toLowerCase();
+      return !exclude.some((ex) => val.includes(ex));
+    });
+  }
+
+  scrollToFirstInvalid() {
+    setTimeout(() => {
+      const el = document.querySelector('.is-invalid');
+      if (el && (el as HTMLElement).focus) {
+        (el as HTMLElement).scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        try {
+          (el as HTMLElement).focus();
+        } catch (e) {}
+      }
+    }, 50);
   }
 
   /**
@@ -279,6 +307,14 @@ export class RegistrationComponent implements OnInit {
     if (!nameRegex.test(trimmed)) {
       return { invalidName: true };
     }
+    return null;
+  }
+
+  /** Custom email validator using project's regex */
+  emailValidator(control: any) {
+    if (!control.value) return null;
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!re.test(control.value)) return { email: true };
     return null;
   }
 
@@ -495,6 +531,7 @@ export class RegistrationComponent implements OnInit {
     if (!allFieldsValid) {
       this.errorMessage =
         'Please fill all required fields to complete your registration';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -505,6 +542,7 @@ export class RegistrationComponent implements OnInit {
       )
     ) {
       this.errorMessage = 'Parent phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -514,6 +552,7 @@ export class RegistrationComponent implements OnInit {
       )
     ) {
       this.errorMessage = 'Medical phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -523,6 +562,7 @@ export class RegistrationComponent implements OnInit {
       )
     ) {
       this.errorMessage = 'Emergency contact phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -535,6 +575,7 @@ export class RegistrationComponent implements OnInit {
       !this.validationService.isValidPhoneNumber(parentAlternate)
     ) {
       this.errorMessage = 'Parent alternate phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -546,6 +587,7 @@ export class RegistrationComponent implements OnInit {
       !this.validationService.isValidPhoneNumber(medicalAlternate)
     ) {
       this.errorMessage = 'Medical alternate phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -586,6 +628,8 @@ export class RegistrationComponent implements OnInit {
       medicalInfo: {
         physicianFirstName:
           this.registrationForm.get('physicianFirstName')?.value,
+        physicianMiddleName: this.registrationForm.get('physicianMiddleName')
+          ?.value,
         physicianLastName:
           this.registrationForm.get('physicianLastName')?.value,
         address1: this.registrationForm.get('medicalAddress1')?.value,
@@ -629,6 +673,7 @@ export class RegistrationComponent implements OnInit {
         nextPaymentDue: new Date(),
       },
     };
+    this.isSubmitting = true;
     this.apiService.registerStudent(registrationData).subscribe({
       next: (response) => {
         // Save the registration data (both response and local data for backup)
@@ -653,10 +698,13 @@ export class RegistrationComponent implements OnInit {
           this.successMessage = '';
           this.router.navigate(['/edit-registration']);
         }, 3000);
+        this.isSubmitting = false;
       },
       error: (err) => {
+        this.isSubmitting = false;
         this.errorMessage = 'Registration failed';
         this.notificationService.error('Registration failed');
+        this.scrollToFirstInvalid();
       },
     });
   }

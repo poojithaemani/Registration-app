@@ -295,6 +295,13 @@
   font-weight: 500;
 }
 
+/* Required asterisk shown in edit mode */
+.required-star {
+  color: #e74c3c;
+  margin-left: 4px;
+  font-weight: 700;
+}
+
 /* Enrollment Section */
 .enrollment-section {
   background: rgba(255, 140, 66, 0.05);

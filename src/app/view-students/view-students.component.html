@@ -90,9 +90,9 @@
             [class.is-invalid]="isFieldInvalid('gender')"
           >
             <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
+            <option *ngFor="let option of genderOptions" [value]="option">
+              {{ option }}
+            </option>
           </select>
           <div *ngIf="isFieldInvalid('gender')" class="error-message">
             Gender is required
@@ -343,16 +343,50 @@
     <section class="form-section">
       <h2 class="section-title">🏥 Medical Information</h2>
       <div class="form-grid">
-        <div class="form-group form-group-full">
-          <label>Physician Name *</label>
+        <div class="form-group">
+          <label>Physician First Name *</label>
           <input
             type="text"
-            formControlName="physicianName"
+            formControlName="physicianFirstName"
             class="form-control"
-            [class.is-invalid]="isFieldInvalid('physicianName')"
+            [class.is-invalid]="isFieldInvalid('physicianFirstName')"
           />
-          <div *ngIf="isFieldInvalid('physicianName')" class="error-message">
-            Physician name is required
+          <div
+            *ngIf="isFieldInvalid('physicianFirstName')"
+            class="error-message"
+          >
+            {{ getFieldErrorMessage("physicianFirstName") }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Physician Middle Name</label>
+          <input
+            type="text"
+            formControlName="physicianMiddleName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('physicianMiddleName')"
+          />
+          <div
+            *ngIf="isFieldInvalid('physicianMiddleName')"
+            class="error-message"
+          >
+            {{ getFieldErrorMessage("physicianMiddleName") }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Physician Last Name *</label>
+          <input
+            type="text"
+            formControlName="physicianLastName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('physicianLastName')"
+          />
+          <div
+            *ngIf="isFieldInvalid('physicianLastName')"
+            class="error-message"
+          >
+            {{ getFieldErrorMessage("physicianLastName") }}
           </div>
         </div>
 

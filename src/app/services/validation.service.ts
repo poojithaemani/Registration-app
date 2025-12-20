@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ValidatorFn, AbstractControl } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root',
@@ -39,6 +40,18 @@ export class ValidationService {
 
   isValidEmail(value: string): boolean {
     return this.emailRegex.test(value);
+  }
+
+  /**
+   * Returns an Angular ValidatorFn that validates an email using the service regex.
+   * Usage: [Validators.required, validationService.emailValidator()]
+   */
+  emailValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      return this.emailRegex.test(val) ? null : { email: true };
+    };
   }
 
   isValidDateOfBirth(value: string): boolean {

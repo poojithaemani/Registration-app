@@ -84,6 +84,16 @@ export class ApiService {
     );
   }
 
+  updateEnrollment(
+    childId: number,
+    enrollmentProgramDetails: any
+  ): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/registrations/${childId}/enrollment`,
+      enrollmentProgramDetails
+    );
+  }
+
   /**
    * Student Management Endpoints
    */
@@ -148,7 +158,10 @@ export class ApiService {
    * @returns Observable with update response
    */
   updatePlan(id: number, data: PaymentPlan): Observable<PaymentPlan> {
-    return this.http.put<PaymentPlan>(`${this.apiUrl}/payment-plans/${id}`, data);
+    return this.http.put<PaymentPlan>(
+      `${this.apiUrl}/payment-plans/${id}`,
+      data
+    );
   }
 
   updateProgram(id: number, data: Program): Observable<Program> {
@@ -159,4 +172,3 @@ export class ApiService {
     return this.http.put<RoomType>(`${this.apiUrl}/room-types/${id}`, data);
   }
 }
-

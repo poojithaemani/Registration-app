@@ -410,6 +410,23 @@
               {{ getFieldErrorMessage("physicianFirstName") }}
             </div>
           </div>
+          <div class="form-group">
+            <label for="physicianMiddleName">Physician Middle Name</label>
+            <input
+              id="physicianMiddleName"
+              type="text"
+              formControlName="physicianMiddleName"
+              class="form-control"
+              placeholder="Enter middle name"
+              [class.is-invalid]="isFieldInvalid('physicianMiddleName')"
+            />
+            <div
+              *ngIf="isFieldInvalid('physicianMiddleName')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("physicianMiddleName") }}
+            </div>
+          </div>
 
           <div class="form-group">
             <label for="physicianLastName" class="required"

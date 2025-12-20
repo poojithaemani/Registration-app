@@ -17,7 +17,7 @@ import {
 import { ApiService } from '../services/api.service';
 import { AuthenticationService } from '../services/authentication.service';
 import { NotificationService } from '../services/notification.service';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -49,10 +49,16 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
   searchTerm = '';
   highlightedFields: Set<string> = new Set();
   loading = true;
+  isSaving = false;
 
   phoneTypeOptions = ['Cell', 'Home', 'Work', 'Other'];
   relationshipOptions = ['Father', 'Mother', 'Guardian'];
-  genderOptions = ['Male', 'Female', 'Other'];
+  genderOptions = ['Male', 'Female'];
+
+  // Dropdown options loaded from API
+  programTypeOptions: any[] = [];
+  roomTypeOptions: any[] = [];
+  planTypeOptions: any[] = [];
 
   /** Maps database program type IDs to string values */
   programTypeReverseMapping: { [key: number]: string } = {
@@ -104,7 +110,58 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
    * Triggers loading of registration data from service
    */
   ngOnInit(): void {
-    this.loadRegistrationData();
+    // Load dropdowns first, then registration data so enrollment fields can map to ids
+    forkJoin({
+      programs: this.apiService.getAllPrograms(),
+      roomTypes: this.apiService.getAllRoomTypes(),
+      plans: this.apiService.getAllPlans(),
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.programTypeOptions = this.filterExcludedOptions(
+            res.programs || [],
+            'programname'
+          );
+          this.roomTypeOptions = this.filterExcludedOptions(
+            res.roomTypes || [],
+            'roomtype'
+          );
+          this.planTypeOptions = this.filterExcludedOptions(
+            res.plans || [],
+            'plantype'
+          );
+          this.loadRegistrationData();
+        },
+        error: () => {
+          // still attempt to load registration data even if dropdowns fail
+          this.loadRegistrationData();
+        },
+      });
+  }
+
+  filterExcludedOptions(list: any[], field: string): any[] {
+    if (!Array.isArray(list)) return [];
+    const exclude = ['summer', 'delux', 'deluxe'];
+    return list.filter((item) => {
+      const val = (item[field] || '').toString().toLowerCase();
+      return !exclude.some((ex) => val.includes(ex));
+    });
+  }
+
+  scrollToFirstInvalid() {
+    setTimeout(() => {
+      const el = document.querySelector('.is-invalid');
+      if (el && (el as HTMLElement).focus) {
+        (el as HTMLElement).scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        try {
+          (el as HTMLElement).focus();
+        } catch (e) {}
+      }
+    }, 50);
   }
 
   /**
@@ -173,7 +230,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       placeOfBirth: [
         { value: data.childInfo.placeOfBirth, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.nameValidator.bind(this)],
       ],
 
       // Parent/Guardian Info
@@ -221,15 +278,15 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       parentCity: [
         { value: data.parentGuardianInfo.city, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.nameValidator.bind(this)],
       ],
       parentZipCode: [
         { value: data.parentGuardianInfo.zipCode, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.zipCodeValidator.bind(this)],
       ],
       parentEmail: [
         { value: data.parentGuardianInfo.email, disabled: !this.isEditMode },
-        [Validators.required, Validators.email],
+        [Validators.required, this.emailValidator.bind(this)],
       ],
       parentPhoneType: [
         {
@@ -243,7 +300,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.parentGuardianInfo.phoneNumber,
           disabled: !this.isEditMode,
         },
-        Validators.required,
+        [Validators.required, this.phoneValidator.bind(this)],
       ],
       parentAlternatePhoneType: [
         {
@@ -256,6 +313,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.parentGuardianInfo.alternatePhoneNumber,
           disabled: !this.isEditMode,
         },
+        this.phoneValidator.bind(this),
       ],
 
       // Medical Info
@@ -265,6 +323,13 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           disabled: !this.isEditMode,
         },
         [Validators.required, this.nameValidator.bind(this)],
+      ],
+      physicianMiddleName: [
+        {
+          value: data.medicalInfo.physicianMiddleName || '',
+          disabled: !this.isEditMode,
+        },
+        this.nameValidator.bind(this),
       ],
       physicianLastName: [
         {
@@ -289,11 +354,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       medicalCity: [
         { value: data.medicalInfo.city, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.nameValidator.bind(this)],
       ],
       medicalZipCode: [
         { value: data.medicalInfo.zipCode, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.zipCodeValidator.bind(this)],
       ],
       medicalPhoneType: [
         { value: data.medicalInfo.phoneType, disabled: !this.isEditMode },
@@ -301,7 +366,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       medicalPhoneNumber: [
         { value: data.medicalInfo.phoneNumber, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.phoneValidator.bind(this)],
       ],
       medicalAlternatePhoneType: [
         {
@@ -314,6 +379,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.medicalInfo.alternatePhoneNumber,
           disabled: !this.isEditMode,
         },
+        this.phoneValidator.bind(this),
       ],
 
       // Care Facility Info
@@ -343,11 +409,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       careFacilityCity: [
         { value: data.careFacilityInfo.city, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.nameValidator.bind(this)],
       ],
       careFacilityZipCode: [
         { value: data.careFacilityInfo.zipCode, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.zipCodeValidator.bind(this)],
       ],
       careFacilityPhoneType: [
         { value: data.careFacilityInfo.phoneType, disabled: !this.isEditMode },
@@ -358,28 +424,36 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.careFacilityInfo.emergencyPhoneNumber,
           disabled: !this.isEditMode,
         },
-        Validators.required,
+        [Validators.required, this.phoneValidator.bind(this)],
       ],
 
-      // Enrollment Program Details (Read-only)
+      // Enrollment Program Details
       programType: [
         {
-          value: this.getProgramTypeDisplay(
+          value: this.getProgramTypeId(
             data.enrollmentProgramDetails.programType
           ),
           disabled: true,
         },
+        Validators.required,
       ],
       roomType: [
         {
-          value: this.getRoomTypeDisplay(
-            data.enrollmentProgramDetails.roomType
-          ),
+          value: this.getRoomTypeId(data.enrollmentProgramDetails.roomType),
           disabled: true,
         },
+        Validators.required,
+      ],
+      planType: [
+        {
+          value: data.enrollmentProgramDetails.planType || null,
+          disabled: true,
+        },
+        Validators.required,
       ],
       enrollmentDate: [
         { value: data.enrollmentProgramDetails.enrollmentDate, disabled: true },
+        Validators.required,
       ],
     });
 
@@ -418,6 +492,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       'parentAlternatePhoneType',
       'parentAlternatePhoneNumber',
       'physicianFirstName',
+      'physicianMiddleName',
       'physicianLastName',
       'medicalAddress1',
       'medicalAddress2',
@@ -436,6 +511,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       'careFacilityZipCode',
       'careFacilityPhoneType',
       'emergencyPhoneNumber',
+      // Allow editing enrollment program details in this component
+      'programType',
+      'roomType',
+      'planType',
+      'enrollmentDate',
     ];
 
     fieldsToEnable.forEach((fieldName) => {
@@ -479,6 +559,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       'parentAlternatePhoneType',
       'parentAlternatePhoneNumber',
       'physicianFirstName',
+      'physicianMiddleName',
       'physicianLastName',
       'medicalAddress1',
       'medicalAddress2',
@@ -497,6 +578,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       'careFacilityZipCode',
       'careFacilityPhoneType',
       'emergencyPhoneNumber',
+      // Enrollment details back to disabled
+      'programType',
+      'roomType',
+      'planType',
+      'enrollmentDate',
     ];
 
     fieldsToDisable.forEach((fieldName) => {
@@ -529,12 +615,18 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
    */
   getProgramTypeDisplay(value: any): string {
     if (!value) return '';
-    // If it's already a string like "fullTime", return as-is
+    // If it's a string like "fullTime", format and return
     if (typeof value === 'string') {
-      return value;
+      return this.formatDropdownText(value);
     }
-    // If it's a number, use the mapping
-    return this.programTypeReverseMapping[value] || '';
+    // If it's a number, map via loaded options
+    const found = this.programTypeOptions.find((p) => p.programid === value);
+    if (found)
+      return this.formatDropdownText(
+        found.programname || String(found.programid)
+      );
+    // fallback to reverse mapping if present
+    return this.formatDropdownText(this.programTypeReverseMapping[value] || '');
   }
 
   /**
@@ -543,12 +635,50 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
    */
   getRoomTypeDisplay(value: any): string {
     if (!value) return '';
-    // If it's already a string like "infant", return as-is
     if (typeof value === 'string') {
-      return value;
+      return this.formatDropdownText(value);
     }
-    // If it's a number, use the mapping
-    return this.roomTypeReverseMapping[value] || '';
+    const found = this.roomTypeOptions.find((r) => r.roomtypeid === value);
+    if (found)
+      return this.formatDropdownText(
+        found.roomtype || String(found.roomtypeid)
+      );
+    return this.formatDropdownText(this.roomTypeReverseMapping[value] || '');
+  }
+
+  /**
+   * Attempt to return an id for a program value which might be numeric or string.
+   */
+  getProgramTypeId(value: any): number | null {
+    if (!value) return null;
+    if (typeof value === 'number') return value;
+    // try find by programname or reverse mapping
+    const found = this.programTypeOptions.find(
+      (p) =>
+        p.programname === value ||
+        p.programname === this.formatDropdownText(value)
+    );
+    if (found) return found.programid;
+    // no match
+    return null;
+  }
+
+  getRoomTypeId(value: any): number | null {
+    if (!value) return null;
+    if (typeof value === 'number') return value;
+    const found = this.roomTypeOptions.find(
+      (r) =>
+        r.roomtype === value || r.roomtype === this.formatDropdownText(value)
+    );
+    if (found) return found.roomtypeid;
+    return null;
+  }
+
+  /** Format camelCase strings to Title Case with spaces */
+  formatDropdownText(text: string): string {
+    if (!text) return '';
+    const spacedText = text.replace(/([A-Z])/g, ' $1');
+    return spacedText.charAt(0).toUpperCase() + spacedText.slice(1);
   }
 
   /**
@@ -673,6 +803,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
 
     if (!allFieldsValid) {
       this.errorMessage = 'Please fill all required fields';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -683,6 +814,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       )
     ) {
       this.errorMessage = 'Parent phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -692,6 +824,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       )
     ) {
       this.errorMessage = 'Medical phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -701,6 +834,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       )
     ) {
       this.errorMessage = 'Emergency contact phone number must be 10 digits';
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -742,6 +876,8 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       this.registrationData.medicalInfo = {
         physicianFirstName:
           this.registrationForm.get('physicianFirstName')?.value,
+        physicianMiddleName: this.registrationForm.get('physicianMiddleName')
+          ?.value,
         physicianLastName:
           this.registrationForm.get('physicianLastName')?.value,
         address1: this.registrationForm.get('medicalAddress1')?.value,
@@ -792,21 +928,51 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         return;
       }
 
+      this.isSaving = true;
+      const enrollmentProgramDetails = {
+        programType: Number(this.registrationForm.get('programType')?.value),
+        roomType: Number(this.registrationForm.get('roomType')?.value),
+        planType: Number(this.registrationForm.get('planType')?.value),
+        enrollmentDate: this.registrationForm.get('enrollmentDate')?.value,
+      };
+
       this.apiService.updateRegistration(childId, registrationData).subscribe({
         next: () => {
-          this.registrationDataService.saveRegistrationData(registrationData);
-          this.notificationService.success('Saved Changes Successfully!');
-          this.successMessage = 'Saved Changes Successfully!';
-          this.originalFormData = this.registrationForm.getRawValue();
-          setTimeout(() => {
-            this.disableEditMode();
-            this.successMessage = '';
-          }, 2000);
+          // then update enrollment
+          this.apiService
+            .updateEnrollment(childId, { enrollmentProgramDetails })
+            .subscribe({
+              next: () => {
+                this.registrationDataService.saveRegistrationData(
+                  registrationData
+                );
+                this.notificationService.success('Saved Changes Successfully!');
+                this.successMessage = 'Saved Changes Successfully!';
+                this.originalFormData = this.registrationForm.getRawValue();
+                this.isSaving = false;
+                setTimeout(() => {
+                  this.disableEditMode();
+                  this.successMessage = '';
+                }, 2000);
+              },
+              error: (err) => {
+                console.error('Update enrollment failed:', err);
+                this.isSaving = false;
+                this.errorMessage =
+                  'Failed to save enrollment changes. Please try again later.';
+                this.notificationService.error(
+                  'Failed to save enrollment changes'
+                );
+                this.scrollToFirstInvalid();
+              },
+            });
         },
         error: (error: any) => {
           console.error('Update registration failed:', error);
+          this.isSaving = false;
           this.errorMessage = 'Failed to save changes. Please try again later.';
           this.notificationService.error('Failed to save changes');
+          this.scrollToFirstInvalid();
         },
       });
     }
@@ -946,6 +1112,14 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         .get(fieldName)
         ?.setValue(value, { emitEvent: false });
     }
+  }
+
+  /** Custom email validator using project's regex */
+  emailValidator(control: any) {
+    if (!control.value) return null;
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!re.test(control.value)) return { email: true };
+    return null;
   }
 
   /**
