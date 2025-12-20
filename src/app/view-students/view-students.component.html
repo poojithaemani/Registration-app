@@ -45,7 +45,11 @@
       <h2 class="section-title">👧 Child Information</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>First Name *</label>
+          <label
+            >First Name<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="childFirstName"
@@ -70,7 +74,11 @@
         </div>
 
         <div class="form-group">
-          <label>Last Name *</label>
+          <label
+            >Last Name<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="childLastName"
@@ -83,16 +91,20 @@
         </div>
 
         <div class="form-group">
-          <label>Gender *</label>
+          <label
+            >Gender<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <select
             formControlName="gender"
             class="form-control"
             [class.is-invalid]="isFieldInvalid('gender')"
           >
             <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
+            <option *ngFor="let option of genderOptions" [value]="option">
+              {{ option }}
+            </option>
           </select>
           <div *ngIf="isFieldInvalid('gender')" class="error-message">
             Gender is required
@@ -100,7 +112,11 @@
         </div>
 
         <div class="form-group">
-          <label>Date of Birth *</label>
+          <label
+            >Date of Birth<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="date"
             formControlName="dateOfBirth"
@@ -113,7 +129,11 @@
         </div>
 
         <div class="form-group">
-          <label>Place of Birth *</label>
+          <label
+            >Place of Birth<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="placeOfBirth"
@@ -132,7 +152,11 @@
       <h2 class="section-title">👨‍👩‍👧 Parent/Guardian Information</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>First Name *</label>
+          <label
+            >First Name<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="parentFirstName"
@@ -157,7 +181,11 @@
         </div>
 
         <div class="form-group">
-          <label>Last Name *</label>
+          <label
+            >Last Name<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="parentLastName"
@@ -170,7 +198,9 @@
         </div>
 
         <div class="form-group">
-          <label>Email *</label>
+          <label
+            >Email<span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <input
             type="email"
             formControlName="parentEmail"
@@ -183,7 +213,11 @@
         </div>
 
         <div class="form-group form-group-full">
-          <label>Address Line 1 *</label>
+          <label
+            >Address Line 1<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="parentAddress1"
@@ -205,7 +239,9 @@
         </div>
 
         <div class="form-group">
-          <label>City *</label>
+          <label
+            >City<span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <input
             type="text"
             formControlName="parentCity"
@@ -218,7 +254,9 @@
         </div>
 
         <div class="form-group">
-          <label>State *</label>
+          <label
+            >State<span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <select
             formControlName="parentState"
             class="form-control"
@@ -235,7 +273,11 @@
         </div>
 
         <div class="form-group">
-          <label>Country *</label>
+          <label
+            >Country<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="parentCountry"
@@ -249,11 +291,17 @@
         </div>
 
         <div class="form-group">
-          <label>Zip Code *</label>
+          <label
+            >Zip Code<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="parentZipCode"
             class="form-control"
+            (keypress)="validationService.keyPressNumbers($event, 5)"
+            (input)="sanitizeZipInput($event, 'parentZipCode')"
             [class.is-invalid]="isFieldInvalid('parentZipCode')"
           />
           <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
@@ -262,7 +310,11 @@
         </div>
 
         <div class="form-group">
-          <label>Phone Type *</label>
+          <label
+            >Phone Type<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <select
             formControlName="parentPhoneType"
             class="form-control"
@@ -279,12 +331,18 @@
         </div>
 
         <div class="form-group">
-          <label>Phone Number *</label>
+          <label
+            >Phone Number<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
-            type="tel"
-            formControlName="parentPhoneNumber"
+            type="text"
+            formControlName="medicalPhoneNumber"
             class="form-control"
-            [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
+            (keypress)="validationService.keyPressNumbers($event, 10)"
+            (input)="sanitizePhoneInput($event, 'medicalPhoneNumber')"
+            [class.is-invalid]="isFieldInvalid('medicalPhoneNumber')"
           />
           <div
             *ngIf="isFieldInvalid('parentPhoneNumber')"
@@ -313,11 +371,16 @@
             type="tel"
             formControlName="parentAlternatePhoneNumber"
             class="form-control"
+            (keypress)="validationService.keyPressNumbers($event, 10)"
+            (input)="sanitizePhoneInput($event, 'parentAlternatePhoneNumber')"
           />
         </div>
 
         <div class="form-group">
-          <label>Relationship *</label>
+          <label
+            >Relationship
+            <span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <select
             formControlName="parentRelationship"
             class="form-control"
@@ -343,21 +406,67 @@
     <section class="form-section">
       <h2 class="section-title">🏥 Medical Information</h2>
       <div class="form-grid">
-        <div class="form-group form-group-full">
-          <label>Physician Name *</label>
+        <div class="form-group">
+          <label
+            >Physician First Name<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
-            formControlName="physicianName"
+            formControlName="physicianFirstName"
             class="form-control"
-            [class.is-invalid]="isFieldInvalid('physicianName')"
+            [class.is-invalid]="isFieldInvalid('physicianFirstName')"
           />
-          <div *ngIf="isFieldInvalid('physicianName')" class="error-message">
-            Physician name is required
+          <div
+            *ngIf="isFieldInvalid('physicianFirstName')"
+            class="error-message"
+          >
+            {{ getFieldErrorMessage("physicianFirstName") }}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Physician Middle Name</label>
+          <input
+            type="text"
+            formControlName="physicianMiddleName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('physicianMiddleName')"
+          />
+          <div
+            *ngIf="isFieldInvalid('physicianMiddleName')"
+            class="error-message"
+          >
+            {{ getFieldErrorMessage("physicianMiddleName") }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label
+            >Physician Last Name<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
+          <input
+            type="text"
+            formControlName="physicianLastName"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('physicianLastName')"
+          />
+          <div
+            *ngIf="isFieldInvalid('physicianLastName')"
+            class="error-message"
+          >
+            {{ getFieldErrorMessage("physicianLastName") }}
           </div>
         </div>
 
         <div class="form-group form-group-full">
-          <label>Address Line 1 *</label>
+          <label
+            >Address Line 1<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="medicalAddress1"
@@ -379,7 +488,9 @@
         </div>
 
         <div class="form-group">
-          <label>City *</label>
+          <label
+            >City<span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <input
             type="text"
             formControlName="medicalCity"
@@ -392,7 +503,9 @@
         </div>
 
         <div class="form-group">
-          <label>State *</label>
+          <label
+            >State<span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <select
             formControlName="medicalState"
             class="form-control"
@@ -409,7 +522,11 @@
         </div>
 
         <div class="form-group">
-          <label>Country *</label>
+          <label
+            >Country<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="medicalCountry"
@@ -423,11 +540,17 @@
         </div>
 
         <div class="form-group">
-          <label>Zip Code *</label>
+          <label
+            >Zip Code<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="medicalZipCode"
             class="form-control"
+            (keypress)="validationService.keyPressNumbers($event, 5)"
+            (input)="sanitizeZipInput($event, 'medicalZipCode')"
             [class.is-invalid]="isFieldInvalid('medicalZipCode')"
           />
           <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
@@ -436,7 +559,11 @@
         </div>
 
         <div class="form-group">
-          <label>Phone Type *</label>
+          <label
+            >Phone Type<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <select
             formControlName="medicalPhoneType"
             class="form-control"
@@ -453,7 +580,11 @@
         </div>
 
         <div class="form-group">
-          <label>Phone Number *</label>
+          <label
+            >Phone Number<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="tel"
             formControlName="medicalPhoneNumber"
@@ -475,7 +606,13 @@
       <h2 class="section-title">🏢 Care Facility Information</h2>
       <div class="form-grid">
         <div class="form-group">
-          <label>Emergency Contact Name *</label>
+          <label
+            >Emergency Contact Name<span
+              *ngIf="isEditMode"
+              class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="emergencyContactName"
@@ -491,11 +628,19 @@
         </div>
 
         <div class="form-group">
-          <label>Emergency Phone Number *</label>
+          <label
+            >Emergency Phone Number<span
+              *ngIf="isEditMode"
+              class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="tel"
             formControlName="emergencyPhoneNumber"
             class="form-control"
+            (keypress)="validationService.keyPressNumbers($event, 10)"
+            (input)="sanitizePhoneInput($event, 'emergencyPhoneNumber')"
             [class.is-invalid]="isFieldInvalid('emergencyPhoneNumber')"
           />
           <div
@@ -507,7 +652,11 @@
         </div>
 
         <div class="form-group form-group-full">
-          <label>Address Line 1 *</label>
+          <label
+            >Address Line 1<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="careFacilityAddress1"
@@ -532,7 +681,9 @@
         </div>
 
         <div class="form-group">
-          <label>City *</label>
+          <label
+            >City<span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <input
             type="text"
             formControlName="careFacilityCity"
@@ -545,7 +696,9 @@
         </div>
 
         <div class="form-group">
-          <label>State *</label>
+          <label
+            >State<span *ngIf="isEditMode" class="required-star">*</span></label
+          >
           <select
             formControlName="careFacilityState"
             class="form-control"
@@ -565,7 +718,11 @@
         </div>
 
         <div class="form-group">
-          <label>Country *</label>
+          <label
+            >Country<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="careFacilityCountry"
@@ -582,11 +739,17 @@
         </div>
 
         <div class="form-group">
-          <label>Zip Code *</label>
+          <label
+            >Zip Code<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <input
             type="text"
             formControlName="careFacilityZipCode"
             class="form-control"
+            (keypress)="validationService.keyPressNumbers($event, 5)"
+            (input)="sanitizeZipInput($event, 'careFacilityZipCode')"
             [class.is-invalid]="isFieldInvalid('careFacilityZipCode')"
           />
           <div
@@ -598,7 +761,11 @@
         </div>
 
         <div class="form-group">
-          <label>Phone Type *</label>
+          <label
+            >Phone Type<span *ngIf="isEditMode" class="required-star"
+              >*</span
+            ></label
+          >
           <select
             formControlName="careFacilityPhoneType"
             class="form-control"

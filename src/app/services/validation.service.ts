@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ValidatorFn, AbstractControl } from '@angular/forms';
 
 @Injectable({
   providedIn: 'root',
@@ -41,17 +42,77 @@ export class ValidationService {
     return this.emailRegex.test(value);
   }
 
+  /**
+   * Returns an Angular ValidatorFn that validates an email using the service regex.
+   * Usage: [Validators.required, validationService.emailValidator()]
+   */
+  emailValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      return this.emailRegex.test(val) ? null : { email: true };
+    };
+  }
+
   isValidDateOfBirth(value: string): boolean {
     return this.dateOfBirthRegex.test(value);
   }
 
   isValidZipCode(value: string): boolean {
-    return this.zipCodeRegex.test(value);
+    if (!this.zipCodeRegex.test(value)) return false;
+    const digitsOnly = value.replace(/\D/g, '');
+    // reject zip codes composed only of zeros
+    if (/^0+$/.test(digitsOnly)) return false;
+    return true;
   }
 
   isValidPhoneNumber(phoneNumber: string): boolean {
     const digitsOnly = phoneNumber.replace(/\D/g, '');
-    return digitsOnly.length === 10;
+    // must be exactly 10 digits and not all zeros
+    return digitsOnly.length === 10 && !/^0+$/.test(digitsOnly);
+  }
+
+  /**
+   * Key press handler to allow only numeric input and optional max length.
+   * Usage in template: (keypress)="validationService.keyPressNumbers($event,10)"
+   */
+  keyPressNumbers(event: KeyboardEvent, maxLength?: number): boolean {
+    const allowedKeys = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'Tab',
+      'Enter',
+      'Home',
+      'End',
+    ];
+
+    if (allowedKeys.includes(event.key)) return true;
+
+    // allow ctrl/cmd shortcuts (copy/paste/select all)
+    if ((event.ctrlKey || event.metaKey) && event.key.length === 1) return true;
+
+    // only digits
+    if (!/^[0-9]$/.test(event.key)) {
+      event.preventDefault();
+      return false;
+    }
+
+    if (maxLength && event.target) {
+      try {
+        const input = event.target as HTMLInputElement;
+        const current = input.value || '';
+        const digitsOnly = current.replace(/\D/g, '');
+        if (digitsOnly.length >= maxLength) {
+          event.preventDefault();
+          return false;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return true;
   }
 
   formatPhoneNumber(phoneNumber: string): string {

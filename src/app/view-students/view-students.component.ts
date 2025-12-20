@@ -9,6 +9,8 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../services/api.service';
+import { ValidationService } from '../services/validation.service';
+import { forkJoin } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { USStatesService } from '../services/us-states.service';
 
@@ -28,7 +30,13 @@ export class ViewStudentsComponent implements OnInit {
 
   studentForm!: FormGroup;
   usStates: any[] = [];
-  phoneTypeOptions: string[] = ['Mobile', 'Home', 'Work', 'Other'];
+  phoneTypeOptions: string[] = ['Cell', 'Home', 'Work', 'Other'];
+  genderOptions: string[] = ['Male', 'Female'];
+  relationshipOptions: string[] = ['Father', 'Mother', 'Guardian'];
+  // dropdown data
+  programTypeOptions: any[] = [];
+  roomTypeOptions: any[] = [];
+  planTypeOptions: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -36,13 +44,63 @@ export class ViewStudentsComponent implements OnInit {
     private apiService: ApiService,
     private notificationService: NotificationService,
     private usStatesService: USStatesService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    public validationService: ValidationService
   ) {}
 
   ngOnInit(): void {
     this.usStates = this.usStatesService.getAllStates();
-    this.initializeForm();
-    this.loadStudentDetails();
+    // load dropdowns first then student details so we can map ids to names
+    forkJoin({
+      programs: this.apiService.getAllPrograms(),
+      roomTypes: this.apiService.getAllRoomTypes(),
+      plans: this.apiService.getAllPlans(),
+    }).subscribe({
+      next: (res: any) => {
+        this.programTypeOptions = this.filterExcludedOptions(
+          res.programs || [],
+          'programname'
+        );
+        this.roomTypeOptions = this.filterExcludedOptions(
+          res.roomTypes || [],
+          'roomtype'
+        );
+        this.planTypeOptions = this.filterExcludedOptions(
+          res.plans || [],
+          'plantype'
+        );
+        this.initializeForm();
+        this.loadStudentDetails();
+      },
+      error: () => {
+        this.initializeForm();
+        this.loadStudentDetails();
+      },
+    });
+  }
+
+  filterExcludedOptions(list: any[], field: string): any[] {
+    if (!Array.isArray(list)) return [];
+    const exclude = ['summer', 'delux', 'deluxe'];
+    return list.filter((item) => {
+      const val = (item[field] || '').toString().toLowerCase();
+      return !exclude.some((ex) => val.includes(ex));
+    });
+  }
+
+  scrollToFirstInvalid() {
+    setTimeout(() => {
+      const el = document.querySelector('.is-invalid');
+      if (el && (el as HTMLElement).focus) {
+        (el as HTMLElement).scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+        try {
+          (el as HTMLElement).focus();
+        } catch (e) {}
+      }
+    }, 50);
   }
 
   /**
@@ -84,7 +142,7 @@ export class ViewStudentsComponent implements OnInit {
       ],
       parentEmail: [
         { value: '', disabled: true },
-        [Validators.required, Validators.email],
+        [Validators.required, this.emailValidator.bind(this)],
       ],
       parentAddress1: [{ value: '', disabled: true }, Validators.required],
       parentAddress2: [{ value: '', disabled: true }],
@@ -93,13 +151,27 @@ export class ViewStudentsComponent implements OnInit {
       parentCountry: [{ value: '', disabled: true }, Validators.required],
       parentZipCode: [{ value: '', disabled: true }, Validators.required],
       parentPhoneType: [{ value: '', disabled: true }, Validators.required],
-      parentPhoneNumber: [{ value: '', disabled: true }, Validators.required],
+      parentPhoneNumber: [
+        { value: '', disabled: true },
+        [Validators.required, this.phoneValidator.bind(this)],
+      ],
       parentAlternatePhoneType: [{ value: '', disabled: true }],
-      parentAlternatePhoneNumber: [{ value: '', disabled: true }],
+      parentAlternatePhoneNumber: [
+        { value: '', disabled: true },
+        this.phoneValidator.bind(this),
+      ],
       parentRelationship: [{ value: '', disabled: true }, Validators.required],
 
       // Medical
-      physicianName: [
+      physicianFirstName: [
+        { value: '', disabled: true },
+        [Validators.required, this.nameValidator.bind(this)],
+      ],
+      physicianMiddleName: [
+        { value: '', disabled: true },
+        this.nameValidator.bind(this),
+      ],
+      physicianLastName: [
         { value: '', disabled: true },
         [Validators.required, this.nameValidator.bind(this)],
       ],
@@ -110,7 +182,10 @@ export class ViewStudentsComponent implements OnInit {
       medicalCountry: [{ value: '', disabled: true }, Validators.required],
       medicalZipCode: [{ value: '', disabled: true }, Validators.required],
       medicalPhoneType: [{ value: '', disabled: true }, Validators.required],
-      medicalPhoneNumber: [{ value: '', disabled: true }, Validators.required],
+      medicalPhoneNumber: [
+        { value: '', disabled: true },
+        [Validators.required, this.phoneValidator.bind(this)],
+      ],
 
       // Care Facility
       emergencyContactName: [
@@ -119,7 +194,7 @@ export class ViewStudentsComponent implements OnInit {
       ],
       emergencyPhoneNumber: [
         { value: '', disabled: true },
-        Validators.required,
+        [Validators.required, this.phoneValidator.bind(this)],
       ],
       careFacilityAddress1: [
         { value: '', disabled: true },
@@ -177,6 +252,7 @@ export class ViewStudentsComponent implements OnInit {
    */
   populateForm(): void {
     if (!this.student) return;
+    const enrollment = this.student.enrollmentProgramDetails || {};
 
     this.studentForm.patchValue({
       childFirstName: this.student.childInfo?.firstName || '',
@@ -204,7 +280,9 @@ export class ViewStudentsComponent implements OnInit {
         this.student.parentGuardianInfo?.alternatePhoneNumber || '',
       parentRelationship: this.student.parentGuardianInfo?.relationship || '',
 
-      physicianName: this.student.medicalInfo?.physicianName || '',
+      physicianFirstName: this.student.medicalInfo?.physicianFirstName || '',
+      physicianMiddleName: this.student.medicalInfo?.physicianMiddleName || '',
+      physicianLastName: this.student.medicalInfo?.physicianLastName || '',
       medicalAddress1: this.student.medicalInfo?.address1 || '',
       medicalAddress2: this.student.medicalInfo?.address2 || '',
       medicalCity: this.student.medicalInfo?.city || '',
@@ -226,9 +304,9 @@ export class ViewStudentsComponent implements OnInit {
       careFacilityZipCode: this.student.careFacilityInfo?.zipCode || '',
       careFacilityPhoneType: this.student.careFacilityInfo?.phoneType || '',
 
-      programType: this.student.enrollmentProgramDetails?.programType || '',
-      roomType: this.student.enrollmentProgramDetails?.roomType || '',
-      planType: this.student.enrollmentProgramDetails?.planType || '',
+      programType: this.getProgramDisplay(enrollment.programType),
+      roomType: this.getRoomDisplay(enrollment.roomType),
+      planType: this.getPlanDisplay(enrollment.planType),
       enrollmentStatus: this.student.enrollmentProgramDetails?.status || '',
       enrollmentPlanId:
         this.student.enrollmentProgramDetails?.enrollmentPlanId || '',
@@ -289,6 +367,7 @@ export class ViewStudentsComponent implements OnInit {
 
     if (!this.studentForm.valid) {
       this.notificationService.error('Please fill in all required fields');
+      this.scrollToFirstInvalid();
       return;
     }
 
@@ -331,7 +410,9 @@ export class ViewStudentsComponent implements OnInit {
         relationship: this.studentForm.get('parentRelationship')?.value,
       },
       medicalInfo: {
-        physicianName: this.studentForm.get('physicianName')?.value,
+        physicianFirstName: this.studentForm.get('physicianFirstName')?.value,
+        physicianMiddleName: this.studentForm.get('physicianMiddleName')?.value,
+        physicianLastName: this.studentForm.get('physicianLastName')?.value,
         address1: this.studentForm.get('medicalAddress1')?.value,
         address2: this.studentForm.get('medicalAddress2')?.value,
         city: this.studentForm.get('medicalCity')?.value,
@@ -457,7 +538,42 @@ export class ViewStudentsComponent implements OnInit {
     if (digitsOnly.length !== 10) {
       return { invalidPhone: true };
     }
+    if (/^0+$/.test(digitsOnly)) {
+      return { invalidPhone: true };
+    }
     return null;
+  }
+
+  getProgramDisplay(value: any): string {
+    if (!value && value !== 0) return '';
+    // if numeric id
+    const found = this.programTypeOptions.find((p) => p.programid === value);
+    if (found) return this.formatDropdownText(found.programname || '');
+    // if string, format
+    if (typeof value === 'string') return this.formatDropdownText(value);
+    return '';
+  }
+
+  getRoomDisplay(value: any): string {
+    if (!value && value !== 0) return '';
+    const found = this.roomTypeOptions.find((r) => r.roomtypeid === value);
+    if (found) return this.formatDropdownText(found.roomtype || '');
+    if (typeof value === 'string') return this.formatDropdownText(value);
+    return '';
+  }
+
+  getPlanDisplay(value: any): string {
+    if (!value && value !== 0) return '';
+    const found = this.planTypeOptions.find((s) => s.paymentplanid === value);
+    if (found) return this.formatDropdownText(found.plantype || '');
+    if (typeof value === 'string') return this.formatDropdownText(value);
+    return '';
+  }
+
+  formatDropdownText(text: string): string {
+    if (!text) return '';
+    const spacedText = text.replace(/([A-Z])/g, ' $1');
+    return spacedText.charAt(0).toUpperCase() + spacedText.slice(1);
   }
 
   /**
@@ -467,6 +583,9 @@ export class ViewStudentsComponent implements OnInit {
     if (!control.value) return null;
     const digitsOnly = control.value.replace(/\D/g, '');
     if (digitsOnly.length !== 5) {
+      return { invalidZipCode: true };
+    }
+    if (/^0+$/.test(digitsOnly)) {
       return { invalidZipCode: true };
     }
     return null;
@@ -511,6 +630,14 @@ export class ViewStudentsComponent implements OnInit {
     if (this.studentForm.get(fieldName)) {
       this.studentForm.get(fieldName)?.setValue(value, { emitEvent: false });
     }
+  }
+
+  /** Custom email validator using project's regex */
+  emailValidator(control: any) {
+    if (!control.value) return null;
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!re.test(control.value)) return { email: true };
+    return null;
   }
 
   /**

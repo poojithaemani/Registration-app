@@ -30,6 +30,7 @@ export interface ParentGuardianInfo {
 
 export interface MedicalInfo {
   physicianFirstName: string;
+  physicianMiddleName?: string;
   physicianLastName: string;
   address1: string;
   address2: string;

@@ -4,6 +4,22 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { RegistrationData } from './registration-data.service';
 
+export interface PaymentPlan {
+  paymentplanid: number;
+  plantype: string;
+  planduration: number;
+}
+
+export interface Program {
+  programid: number;
+  programname: string;
+}
+
+export interface RoomType {
+  roomtypeid: number;
+  roomtype: string;
+}
+
 /**
  * ApiService - Centralized API communication layer
  * Handles all HTTP requests to backend endpoints
@@ -54,19 +70,6 @@ export class ApiService {
 
   /**
    * Update existing student registration data
-   * @param studentId - Unique student identifier
-   * @param studentData - Updated student data
-   * @returns Observable with update response
-   */
-  updateStudentData(childId: number, studentData: any): Observable<any> {
-    return this.http.put(
-      `${this.apiUrl}/registrations/${childId}`,
-      studentData
-    );
-  }
-
-  /**
-   * Update existing student registration data
    * @param childId - Child ID for the registration to update
    * @param registrationData - Updated student data
    * @returns Observable with update response
@@ -78,6 +81,16 @@ export class ApiService {
     return this.http.put(
       `${this.apiUrl}/registrations/${childId}`,
       registrationData
+    );
+  }
+
+  updateEnrollment(
+    childId: number,
+    enrollmentProgramDetails: any
+  ): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/registrations/${childId}/enrollment`,
+      enrollmentProgramDetails
     );
   }
 
@@ -122,5 +135,40 @@ export class ApiService {
    */
   getAllUsers(): Observable<any> {
     return this.http.get(`${this.apiUrl}/users`);
+  }
+
+  /**Get all Plans, Programs and Room Types
+   * @returns Observable with array of all plans, programs, and room types
+   */
+  getAllPlans(): Observable<PaymentPlan[]> {
+    return this.http.get<PaymentPlan[]>(`${this.apiUrl}/payment-plans`);
+  }
+
+  getAllPrograms(): Observable<Program[]> {
+    return this.http.get<Program[]>(`${this.apiUrl}/programs`);
+  }
+
+  getAllRoomTypes(): Observable<RoomType[]> {
+    return this.http.get<RoomType[]>(`${this.apiUrl}/room-types`);
+  }
+
+  /**Update plan, program, or room type information using PUT
+   * @param id - Unique identifier for the plan, program, or room type to update
+   * @param data - Updated information for the plan, program, or room type
+   * @returns Observable with update response
+   */
+  updatePlan(id: number, data: PaymentPlan): Observable<PaymentPlan> {
+    return this.http.put<PaymentPlan>(
+      `${this.apiUrl}/payment-plans/${id}`,
+      data
+    );
+  }
+
+  updateProgram(id: number, data: Program): Observable<Program> {
+    return this.http.put<Program>(`${this.apiUrl}/programs/${id}`, data);
+  }
+
+  updateRoomType(id: number, data: RoomType): Observable<RoomType> {
+    return this.http.put<RoomType>(`${this.apiUrl}/room-types/${id}`, data);
   }
 }
