@@ -149,7 +149,10 @@ export class ViewStudentsComponent implements OnInit {
       parentCity: [{ value: '', disabled: true }, Validators.required],
       parentState: [{ value: '', disabled: true }, Validators.required],
       parentCountry: [{ value: '', disabled: true }, Validators.required],
-      parentZipCode: [{ value: '', disabled: true }, Validators.required],
+      parentZipCode: [
+        { value: '', disabled: true },
+        [Validators.required, this.zipCodeValidator.bind(this)],
+      ],
       parentPhoneType: [{ value: '', disabled: true }, Validators.required],
       parentPhoneNumber: [
         { value: '', disabled: true },
@@ -180,7 +183,10 @@ export class ViewStudentsComponent implements OnInit {
       medicalCity: [{ value: '', disabled: true }, Validators.required],
       medicalState: [{ value: '', disabled: true }, Validators.required],
       medicalCountry: [{ value: '', disabled: true }, Validators.required],
-      medicalZipCode: [{ value: '', disabled: true }, Validators.required],
+      medicalZipCode: [
+        { value: '', disabled: true },
+        [Validators.required, this.zipCodeValidator.bind(this)],
+      ],
       medicalPhoneType: [{ value: '', disabled: true }, Validators.required],
       medicalPhoneNumber: [
         { value: '', disabled: true },
@@ -204,7 +210,10 @@ export class ViewStudentsComponent implements OnInit {
       careFacilityCity: [{ value: '', disabled: true }, Validators.required],
       careFacilityState: [{ value: '', disabled: true }, Validators.required],
       careFacilityCountry: [{ value: '', disabled: true }, Validators.required],
-      careFacilityZipCode: [{ value: '', disabled: true }, Validators.required],
+      careFacilityZipCode: [
+        { value: '', disabled: true },
+        [Validators.required, this.zipCodeValidator.bind(this)],
+      ],
       careFacilityPhoneType: [
         { value: '', disabled: true },
         Validators.required,

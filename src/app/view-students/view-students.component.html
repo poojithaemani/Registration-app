@@ -305,7 +305,7 @@
             [class.is-invalid]="isFieldInvalid('parentZipCode')"
           />
           <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
-            Zip code is required
+            {{ getFieldErrorMessage("parentZipCode") }}
           </div>
         </div>
 
@@ -338,17 +338,17 @@
           >
           <input
             type="text"
-            formControlName="medicalPhoneNumber"
+            formControlName="parentPhoneNumber"
             class="form-control"
             (keypress)="validationService.keyPressNumbers($event, 10)"
-            (input)="sanitizePhoneInput($event, 'medicalPhoneNumber')"
-            [class.is-invalid]="isFieldInvalid('medicalPhoneNumber')"
+            (input)="sanitizePhoneInput($event, 'parentPhoneNumber')"
+            [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
           />
           <div
             *ngIf="isFieldInvalid('parentPhoneNumber')"
             class="error-message"
           >
-            Phone number is required
+            {{ getFieldErrorMessage("parentPhoneNumber") }}
           </div>
         </div>
 
@@ -554,7 +554,7 @@
             [class.is-invalid]="isFieldInvalid('medicalZipCode')"
           />
           <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
-            Zip code is required
+            {{ getFieldErrorMessage("medicalZipCode") }}
           </div>
         </div>
 
@@ -756,7 +756,7 @@
             *ngIf="isFieldInvalid('careFacilityZipCode')"
             class="error-message"
           >
-            Zip code is required
+            {{ getFieldErrorMessage("careFacilityZipCode") }}
           </div>
         </div>
 
