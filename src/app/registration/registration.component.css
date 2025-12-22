@@ -48,6 +48,28 @@
   color: #ff6b35;
 }
 
+/* btn-back (match view-students) */
+.btn-back {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: #f0f2f5;
+  color: #2c3e50;
+  border: 2px solid #e0e6ed;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  white-space: nowrap;
+  margin-left: 20px;
+}
+
+.btn-back:hover {
+  background: #ff8c42;
+  color: white;
+  border-color: #ff8c42;
+}
+
 form {
   margin-top: 30px;
 }

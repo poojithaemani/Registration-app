@@ -432,25 +432,7 @@ export class RegistrationComponent implements OnInit {
    */
   getFieldErrorMessage(fieldName: string): string {
     const control = this.registrationForm.get(fieldName);
-    if (!control || !control.errors) return '';
-    const rawLabel = fieldName.replace(/([A-Z])/g, ' $1').trim();
-    const label =
-      rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
-
-    if (control.errors['onlySpaces']) return 'Only spaces are not allowed';
-    if (control.errors['required']) return `${label} is required`;
-    if (control.errors['email']) return 'Please enter a valid email address';
-    if (control.errors['whitespace']) {
-      if (this.isRequiredField(fieldName)) return `${label} is required`;
-      return '';
-    }
-    if (control.errors['invalidName'])
-      return 'Only letters, spaces, hyphens, and apostrophes are allowed';
-    if (control.errors['invalidPhone'])
-      return 'Phone number must be exactly 10 digits';
-    if (control.errors['invalidZipCode'])
-      return 'Zip code must be exactly 5 digits';
-    return 'Invalid input';
+    return this.validationService.getFieldErrorMessage(control, fieldName);
   }
 
   /**
@@ -524,9 +506,25 @@ export class RegistrationComponent implements OnInit {
     let allFieldsValid = true;
     for (const field of requiredFields) {
       const control = this.registrationForm.get(field);
-      if (!control || !control.value) {
+      const val = control?.value;
+
+      // treat null/undefined/empty/only-spaces as invalid
+      if (!control || this.validationService.isFieldEmpty(val)) {
         allFieldsValid = false;
-        control?.markAsTouched();
+        if (control) {
+          const currentErrors = control.errors ? { ...control.errors } : {};
+          if (
+            typeof val === 'string' &&
+            val.length > 0 &&
+            val.trim().length === 0
+          ) {
+            currentErrors['onlySpaces'] = true;
+          } else {
+            currentErrors['required'] = true;
+          }
+          control.setErrors(currentErrors);
+          control.markAsTouched();
+        }
       }
     }
 

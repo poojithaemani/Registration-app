@@ -67,8 +67,16 @@ export class LoginComponent {
 
     this.isLoading = true;
 
+    // Normalize email to lower-case for case-insensitive authentication
+    const rawEmail = this.loginForm.get('email')?.value || '';
+    const normalizedEmail = String(rawEmail).trim().toLowerCase();
+    // Optionally update the control value (keeps UI consistent)
+    this.loginForm
+      .get('email')
+      ?.setValue(normalizedEmail, { emitEvent: false });
+
     const credentials = {
-      email: this.loginForm.get('email')?.value,
+      email: normalizedEmail,
       password: this.loginForm.get('password')?.value,
     };
 
