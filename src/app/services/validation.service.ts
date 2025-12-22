@@ -18,7 +18,7 @@ export class ValidationService {
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   private readonly dateOfBirthRegex =
     /^(?:(?:0[13578]|1[02])\/(?:0[1-9]|[12]\d|3[01])\/(?:19|20)\d{2}|(?:0[469]|11)\/(?:0[1-9]|[12]\d|30)\/(?:19|20)\d{2}|02\/(?:0[1-9]|1\d|2[0-8])\/(?:19|20)\d{2}|02\/29\/(?:19|20)(?:0[48]|[2468][048]|[13579][26]))$/;
-  private readonly zipCodeRegex = /^\d{5}(-\d{4})?$/;
+  private readonly zipCodeRegex = /^\d{5}$/;
 
   constructor() {}
 
@@ -143,5 +143,34 @@ export class ValidationService {
     if (value === null || value === undefined) return true;
     if (typeof value === 'string') return value.trim() === '';
     return false;
+  }
+
+  /**
+   * Returns a user-friendly error message for a form control.
+   * If `fieldName` is provided, it will be used to create a readable label for required messages.
+   */
+  getFieldErrorMessage(
+    control: AbstractControl | null,
+    fieldName?: string
+  ): string {
+    if (!control || !control.errors) return '';
+
+    const rawLabel = fieldName
+      ? fieldName.replace(/([A-Z])/g, ' $1').trim()
+      : '';
+    const label = rawLabel
+      ? rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase()
+      : '';
+
+    const errors = control.errors;
+    if (errors['onlySpaces']) return 'Only spaces are not allowed';
+    if (errors['required'])
+      return label ? `${label} is required` : 'This field is required';
+    if (errors['email']) return 'Please enter a valid email address';
+    if (errors['invalidName'])
+      return 'Only letters, spaces, hyphens, and apostrophes are allowed';
+    if (errors['invalidPhone']) return 'Phone number must be exactly 10 digits';
+    if (errors['invalidZipCode']) return 'Zip code must be exactly 5 digits';
+    return 'Invalid input';
   }
 }

@@ -13,6 +13,11 @@
           formControlName="email"
           class="form-control"
           placeholder="Enter your email"
+          autocomplete="email"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
+          (keydown.enter)="onLogin()"
           [class.is-invalid]="submitted && email?.invalid"
         />
         <div *ngIf="submitted && email?.invalid" class="error-message">
@@ -30,6 +35,7 @@
             formControlName="password"
             class="form-control"
             placeholder="Enter your password"
+            (keydown.enter)="onLogin()"
             [class.is-invalid]="submitted && password?.invalid"
           />
           <button

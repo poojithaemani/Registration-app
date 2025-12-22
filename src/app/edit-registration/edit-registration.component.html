@@ -27,11 +27,7 @@
           />
         </div>
         <div class="header-right">
-          <button
-            type="button"
-            class="back-to-login"
-            (click)="navigateToStudents()"
-          >
+          <button type="button" class="btn-back" (click)="navigateToStudents()">
             ← Back to Students
           </button>
           <button
@@ -75,7 +71,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('childFirstName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'childFirstName')"
+              (input)="formatNameInput($event, 'childFirstName')"
             />
             <div *ngIf="isFieldInvalid('childFirstName')" class="error-message">
               {{ getFieldErrorMessage("childFirstName") }}
@@ -113,7 +109,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('childLastName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'childLastName')"
+              (input)="formatNameInput($event, 'childLastName')"
             />
             <div *ngIf="isFieldInvalid('childLastName')" class="error-message">
               {{ getFieldErrorMessage("childLastName") }}
@@ -180,7 +176,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('placeOfBirth')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'placeOfBirth')"
+              (input)="formatNameInput($event, 'placeOfBirth')"
             />
             <div *ngIf="isFieldInvalid('placeOfBirth')" class="error-message">
               {{ getFieldErrorMessage("placeOfBirth") }}
@@ -207,7 +203,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentFirstName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'parentFirstName')"
+              (input)="formatNameInput($event, 'parentFirstName')"
             />
             <div
               *ngIf="isFieldInvalid('parentFirstName')"
@@ -248,7 +244,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentLastName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'parentLastName')"
+              (input)="formatNameInput($event, 'parentLastName')"
             />
             <div *ngIf="isFieldInvalid('parentLastName')" class="error-message">
               {{ getFieldErrorMessage("parentLastName") }}
@@ -385,7 +381,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('parentCity')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'parentCity')"
+              (input)="formatNameInput($event, 'parentCity')"
             />
             <div *ngIf="isFieldInvalid('parentCity')" class="error-message">
               {{ getFieldErrorMessage("parentCity") }}
@@ -406,7 +402,7 @@
               [class.is-invalid]="isFieldInvalid('parentZipCode')"
               [readonly]="!isEditMode"
               (keypress)="validationService.keyPressNumbers($event, 5)"
-              (input)="sanitizeZipInput($event, 'parentZipCode')"
+              (input)="formatZipCode($event, 'parentZipCode')"
             />
             <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
               {{ getFieldErrorMessage("parentZipCode") }}
@@ -457,7 +453,7 @@
                 class="form-control"
                 placeholder="(555) 555-5555"
                 maxlength="14"
-                (input)="sanitizePhoneInput($event, 'parentPhoneNumber')"
+                (input)="formatPhoneInput($event, 'parentPhoneNumber')"
                 (keypress)="validationService.keyPressNumbers($event, 10)"
                 [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
                 [readonly]="!isEditMode"
@@ -501,7 +497,7 @@
               class="form-control"
               placeholder="(555) 555-5555"
               maxlength="14"
-              (input)="sanitizePhoneInput($event, 'parentAlternatePhoneNumber')"
+              (input)="formatPhoneInput($event, 'parentAlternatePhoneNumber')"
               (keypress)="validationService.keyPressNumbers($event, 10)"
               [readonly]="!isEditMode"
             />
@@ -527,7 +523,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('physicianFirstName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'physicianFirstName')"
+              (input)="formatNameInput($event, 'physicianFirstName')"
             />
             <div
               *ngIf="isFieldInvalid('physicianFirstName')"
@@ -544,7 +540,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('physicianMiddleName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'physicianMiddleName')"
+              (input)="formatNameInput($event, 'physicianMiddleName')"
             />
             <div
               *ngIf="isFieldInvalid('physicianMiddleName')"
@@ -567,7 +563,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('physicianLastName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'physicianLastName')"
+              (input)="formatNameInput($event, 'physicianLastName')"
             />
             <div
               *ngIf="isFieldInvalid('physicianLastName')"
@@ -662,7 +658,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('medicalCity')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'medicalCity')"
+              (input)="formatNameInput($event, 'medicalCity')"
             />
             <div *ngIf="isFieldInvalid('medicalCity')" class="error-message">
               {{ getFieldErrorMessage("medicalCity") }}
@@ -683,7 +679,7 @@
               [class.is-invalid]="isFieldInvalid('medicalZipCode')"
               [readonly]="!isEditMode"
               (keypress)="validationService.keyPressNumbers($event, 5)"
-              (input)="sanitizeZipInput($event, 'medicalZipCode')"
+              (input)="formatZipCode($event, 'medicalZipCode')"
             />
             <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
               {{ getFieldErrorMessage("medicalZipCode") }}
@@ -734,7 +730,7 @@
                 class="form-control"
                 placeholder="(555) 555-5555"
                 maxlength="14"
-                (input)="sanitizePhoneInput($event, 'medicalPhoneNumber')"
+                (input)="formatPhoneInput($event, 'medicalPhoneNumber')"
                 (keypress)="validationService.keyPressNumbers($event, 10)"
                 [class.is-invalid]="isFieldInvalid('medicalPhoneNumber')"
                 [readonly]="!isEditMode"
@@ -778,9 +774,7 @@
               class="form-control"
               placeholder="(555) 555-5555"
               maxlength="14"
-              (input)="
-                sanitizePhoneInput($event, 'medicalAlternatePhoneNumber')
-              "
+              (input)="formatPhoneInput($event, 'medicalAlternatePhoneNumber')"
               (keypress)="validationService.keyPressNumbers($event, 10)"
               [readonly]="!isEditMode"
             />
@@ -806,7 +800,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('emergencyContactName')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'emergencyContactName')"
+              (input)="formatNameInput($event, 'emergencyContactName')"
             />
             <div
               *ngIf="isFieldInvalid('emergencyContactName')"
@@ -904,7 +898,7 @@
               class="form-control"
               [class.is-invalid]="isFieldInvalid('careFacilityCity')"
               [readonly]="!isEditMode"
-              (input)="sanitizeNameInput($event, 'careFacilityCity')"
+              (input)="formatNameInput($event, 'careFacilityCity')"
             />
             <div
               *ngIf="isFieldInvalid('careFacilityCity')"
@@ -928,7 +922,7 @@
               [class.is-invalid]="isFieldInvalid('careFacilityZipCode')"
               [readonly]="!isEditMode"
               (keypress)="validationService.keyPressNumbers($event, 5)"
-              (input)="sanitizeZipInput($event, 'careFacilityZipCode')"
+              (input)="formatZipCode($event, 'careFacilityZipCode')"
             />
             <div
               *ngIf="isFieldInvalid('careFacilityZipCode')"
@@ -982,7 +976,7 @@
                 class="form-control"
                 placeholder="(555) 555-5555"
                 maxlength="14"
-                (input)="sanitizePhoneInput($event, 'emergencyPhoneNumber')"
+                (input)="formatPhoneInput($event, 'emergencyPhoneNumber')"
                 (keypress)="validationService.keyPressNumbers($event, 10)"
                 [class.is-invalid]="isFieldInvalid('emergencyPhoneNumber')"
                 [readonly]="!isEditMode"
@@ -1007,9 +1001,13 @@
             <select
               formControlName="programType"
               class="form-control"
-              [disabled]="!isEditMode"
+              [disabled]="!isEditMode || programTypeOptions.length === 0"
             >
-              <option value="">Select Program</option>
+              <option value="">
+                {{
+                  programTypeOptions.length ? "Select Program" : "Loading..."
+                }}
+              </option>
               <option
                 *ngFor="let p of programTypeOptions"
                 [value]="p.programid"
@@ -1023,9 +1021,11 @@
             <select
               formControlName="roomType"
               class="form-control"
-              [disabled]="!isEditMode"
+              [disabled]="!isEditMode || roomTypeOptions.length === 0"
             >
-              <option value="">Select Room</option>
+              <option value="">
+                {{ roomTypeOptions.length ? "Select Room" : "Loading..." }}
+              </option>
               <option *ngFor="let r of roomTypeOptions" [value]="r.roomtypeid">
                 {{ formatDropdownText(r.roomtype) }}
               </option>
@@ -1036,9 +1036,11 @@
             <select
               formControlName="planType"
               class="form-control"
-              [disabled]="!isEditMode"
+              [disabled]="!isEditMode || planTypeOptions.length === 0"
             >
-              <option value="">Select Plan</option>
+              <option value="">
+                {{ planTypeOptions.length ? "Select Plan" : "Loading..." }}
+              </option>
               <option
                 *ngFor="let s of planTypeOptions"
                 [value]="s.paymentplanid"

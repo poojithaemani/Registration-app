@@ -303,7 +303,7 @@
             formControlName="parentZipCode"
             class="form-control"
             (keypress)="validationService.keyPressNumbers($event, 5)"
-            (input)="sanitizeZipInput($event, 'parentZipCode')"
+            (input)="formatZipCode($event, 'parentZipCode')"
             [class.is-invalid]="isFieldInvalid('parentZipCode')"
           />
           <div *ngIf="isFieldInvalid('parentZipCode')" class="error-message">
@@ -343,7 +343,7 @@
             formControlName="parentPhoneNumber"
             class="form-control"
             (keypress)="validationService.keyPressNumbers($event, 10)"
-            (input)="sanitizePhoneInput($event, 'parentPhoneNumber')"
+            (input)="formatPhoneNumber($event, 'parentPhoneNumber')"
             [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
           />
           <div
@@ -374,7 +374,7 @@
             formControlName="parentAlternatePhoneNumber"
             class="form-control"
             (keypress)="validationService.keyPressNumbers($event, 10)"
-            (input)="sanitizePhoneInput($event, 'parentAlternatePhoneNumber')"
+            (input)="formatPhoneNumber($event, 'parentAlternatePhoneNumber')"
           />
         </div>
 
@@ -552,7 +552,7 @@
             formControlName="medicalZipCode"
             class="form-control"
             (keypress)="validationService.keyPressNumbers($event, 5)"
-            (input)="sanitizeZipInput($event, 'medicalZipCode')"
+            (input)="formatZipCode($event, 'medicalZipCode')"
             [class.is-invalid]="isFieldInvalid('medicalZipCode')"
           />
           <div *ngIf="isFieldInvalid('medicalZipCode')" class="error-message">
@@ -642,7 +642,7 @@
             formControlName="emergencyPhoneNumber"
             class="form-control"
             (keypress)="validationService.keyPressNumbers($event, 10)"
-            (input)="sanitizePhoneInput($event, 'emergencyPhoneNumber')"
+            (input)="formatPhoneNumber($event, 'emergencyPhoneNumber')"
             [class.is-invalid]="isFieldInvalid('emergencyPhoneNumber')"
           />
           <div
@@ -751,7 +751,7 @@
             formControlName="careFacilityZipCode"
             class="form-control"
             (keypress)="validationService.keyPressNumbers($event, 5)"
-            (input)="sanitizeZipInput($event, 'careFacilityZipCode')"
+            (input)="formatZipCode($event, 'careFacilityZipCode')"
             [class.is-invalid]="isFieldInvalid('careFacilityZipCode')"
           />
           <div

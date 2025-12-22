@@ -377,7 +377,7 @@ export class ViewStudentsComponent implements OnInit {
     this.trimAllStringControls();
 
     if (!this.studentForm.valid) {
-      this.notificationService.error('Please fill in all required fields');
+      this.notificationService.error('Please fill all required fields to ed');
       this.scrollToFirstInvalid();
       return;
     }
@@ -603,9 +603,9 @@ export class ViewStudentsComponent implements OnInit {
   }
 
   /**
-   * Sanitizes name input - removes non-letter characters
+   * Formats name input - removes non-letter characters
    */
-  sanitizeNameInput(event: any, fieldName: string) {
+  formatNameInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     value = value.replace(/[^a-zA-Z\s'-]/g, '');
@@ -616,9 +616,9 @@ export class ViewStudentsComponent implements OnInit {
   }
 
   /**
-   * Sanitizes phone input - keeps only digits, limits to 10
+   * Formats phone input - keeps only digits, limits to 10
    */
-  sanitizePhoneInput(event: any, fieldName: string) {
+  formatPhoneNumber(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     value = value.replace(/\D/g, '');
@@ -630,9 +630,9 @@ export class ViewStudentsComponent implements OnInit {
   }
 
   /**
-   * Sanitizes zip code input - keeps only digits, limits to 5
+   * Formats zip code input - keeps only digits, limits to 5
    */
-  sanitizeZipInput(event: any, fieldName: string) {
+  formatZipCode(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
     let value = input.value;
     value = value.replace(/\D/g, '');
@@ -656,25 +656,6 @@ export class ViewStudentsComponent implements OnInit {
    */
   getFieldErrorMessage(fieldName: string): string {
     const control = this.studentForm.get(fieldName);
-    if (!control || !control.errors) return '';
-    const rawLabel = fieldName.replace(/([A-Z])/g, ' $1').trim();
-    const label =
-      rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1).toLowerCase();
-
-    if (control.errors['onlySpaces']) return 'Only spaces are not allowed';
-    if (control.errors['required']) return `${label} is required`;
-    if (control.errors['email']) return 'Please enter a valid email address';
-    if (control.errors['whitespace']) {
-      if (this.isRequiredField && this.isRequiredField(fieldName))
-        return `${label} is required`;
-      return '';
-    }
-    if (control.errors['invalidName'])
-      return 'Only letters, spaces, hyphens, and apostrophes are allowed';
-    if (control.errors['invalidPhone'])
-      return 'Phone number must be exactly 10 digits';
-    if (control.errors['invalidZipCode'])
-      return 'Zip code must be exactly 5 digits';
-    return 'Invalid input';
+    return this.validationService.getFieldErrorMessage(control, fieldName);
   }
 }
