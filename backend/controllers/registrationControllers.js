@@ -527,6 +527,77 @@ export const updateRegistration = async (req, res) => {
       );
     }
 
+    // If enrollmentProgramDetails provided, validate and update registrations within same transaction
+    if (enrollmentProgramDetails) {
+      const { programType, roomType, planType, status } =
+        enrollmentProgramDetails;
+
+      // Validate program and room
+      const programRes = await client.query(
+        `SELECT programid FROM programs WHERE programid = $1`,
+        [programType]
+      );
+      const roomRes = await client.query(
+        `SELECT roomtypeid FROM roomtypes WHERE roomtypeid = $1`,
+        [roomType]
+      );
+
+      if (!programRes.rows.length || !roomRes.rows.length) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "Invalid program or room type" });
+      }
+
+      const planRes = await client.query(
+        `SELECT enrollmentplanid FROM enrollmentplans WHERE programid = $1 AND roomtypeid = $2`,
+        [programRes.rows[0].programid, roomRes.rows[0].roomtypeid]
+      );
+
+      if (!planRes.rows.length) {
+        await client.query("ROLLBACK");
+        return res
+          .status(400)
+          .json({
+            error: "No enrollment plan found for selected program & room",
+          });
+      }
+
+      const paymentRes = await client.query(
+        `SELECT paymentplanid FROM paymentplan WHERE paymentplanid = $1`,
+        [planType]
+      );
+      if (!paymentRes.rows.length) {
+        await client.query("ROLLBACK");
+        return res.status(400).json({ error: "Invalid payment plan type" });
+      }
+
+      // Update or insert registration record
+      const regRes = await client.query(
+        `SELECT registrationid FROM registrations WHERE childid = $1`,
+        [childId]
+      );
+      if (regRes.rows.length) {
+        await client.query(
+          `UPDATE registrations SET enrollmentplanid=$1, paymentplanid=$2, status=$3 WHERE childid=$4`,
+          [
+            planRes.rows[0].enrollmentplanid,
+            paymentRes.rows[0].paymentplanid,
+            status || "Pending Approval",
+            childId,
+          ]
+        );
+      } else {
+        await client.query(
+          `INSERT INTO registrations (childid, enrollmentplanid, status, paymentplanid, amount) VALUES ($1,$2,$3,$4,0)`,
+          [
+            childId,
+            planRes.rows[0].enrollmentplanid,
+            status || "Pending Approval",
+            paymentRes.rows[0].paymentplanid,
+          ]
+        );
+      }
+    }
+
     await client.query("COMMIT");
 
     res.json({ success: true, message: "Registration updated successfully" });

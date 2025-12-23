@@ -62,7 +62,7 @@ export interface EnrollmentProgramDetails {
   programType: string | number;
   enrollmentDate: Date;
   roomType: string | number;
-  planType: string;
+  planType: string | number;
   nextPaymentDue: Date;
 }
 
@@ -72,7 +72,7 @@ export interface RegistrationData {
   parentGuardianInfo: ParentGuardianInfo;
   medicalInfo: MedicalInfo;
   careFacilityInfo: CareFacilityInfo;
-  enrollmentProgramDetails: EnrollmentProgramDetails;
+  enrollmentProgramDetails?: Partial<EnrollmentProgramDetails>;
 }
 
 @Injectable({

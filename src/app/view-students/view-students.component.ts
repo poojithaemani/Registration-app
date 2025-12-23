@@ -112,73 +112,79 @@ export class ViewStudentsComponent implements OnInit {
     this.studentForm = this.formBuilder.group({
       childFirstName: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       childMiddleName: [
         { value: '', disabled: true },
-        this.nameValidator.bind(this),
+        this.validationService.nameValidator(),
       ],
       childLastName: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       gender: [{ value: '', disabled: true }, Validators.required],
-      dateOfBirth: [{ value: '', disabled: true }, Validators.required],
+      dateOfBirth: [
+        { value: '', disabled: true },
+        [Validators.required, this.validationService.dateOfBirthValidator()],
+      ],
       placeOfBirth: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
 
       // Parent/Guardian
       parentFirstName: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       parentMiddleName: [
         { value: '', disabled: true },
-        this.nameValidator.bind(this),
+        this.validationService.nameValidator(),
       ],
       parentLastName: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       parentEmail: [
         { value: '', disabled: true },
-        [Validators.required, this.emailValidator.bind(this)],
+        [Validators.required, this.validationService.emailValidator()],
       ],
-      parentAddress1: [{ value: '', disabled: true }, Validators.required],
+      parentAddress1: [
+        { value: '', disabled: true },
+        [Validators.required, this.validationService.addressValidator()],
+      ],
       parentAddress2: [{ value: '', disabled: true }],
       parentCity: [{ value: '', disabled: true }, Validators.required],
       parentState: [{ value: '', disabled: true }, Validators.required],
       parentCountry: [{ value: '', disabled: true }, Validators.required],
       parentZipCode: [
         { value: '', disabled: true },
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       parentPhoneType: [{ value: '', disabled: true }, Validators.required],
       parentPhoneNumber: [
         { value: '', disabled: true },
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
       parentAlternatePhoneType: [{ value: '', disabled: true }],
       parentAlternatePhoneNumber: [
         { value: '', disabled: true },
-        this.phoneValidator.bind(this),
+        this.validationService.phoneValidator(),
       ],
       parentRelationship: [{ value: '', disabled: true }, Validators.required],
 
       // Medical
       physicianFirstName: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       physicianMiddleName: [
         { value: '', disabled: true },
-        this.nameValidator.bind(this),
+        this.validationService.nameValidator(),
       ],
       physicianLastName: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       medicalAddress1: [{ value: '', disabled: true }, Validators.required],
       medicalAddress2: [{ value: '', disabled: true }],
@@ -187,22 +193,22 @@ export class ViewStudentsComponent implements OnInit {
       medicalCountry: [{ value: '', disabled: true }, Validators.required],
       medicalZipCode: [
         { value: '', disabled: true },
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       medicalPhoneType: [{ value: '', disabled: true }, Validators.required],
       medicalPhoneNumber: [
         { value: '', disabled: true },
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
 
       // Care Facility
       emergencyContactName: [
         { value: '', disabled: true },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       emergencyPhoneNumber: [
         { value: '', disabled: true },
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
       careFacilityAddress1: [
         { value: '', disabled: true },
@@ -214,7 +220,7 @@ export class ViewStudentsComponent implements OnInit {
       careFacilityCountry: [{ value: '', disabled: true }, Validators.required],
       careFacilityZipCode: [
         { value: '', disabled: true },
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       careFacilityPhoneType: [
         { value: '', disabled: true },
@@ -502,15 +508,24 @@ export class ViewStudentsComponent implements OnInit {
     const raw = String(control.value);
     const trimmed = raw.trim();
     if (trimmed.length === 0) return null;
-    const nameRegex = /^[a-zA-Z\s'-]+$/;
-    if (!nameRegex.test(trimmed)) {
+    if (!this.validationService.isValidName(trimmed)) {
       return { invalidName: true };
     }
     return null;
   }
 
+  addressValidator(control: any) {
+    if (control.value == null) return null;
+    const val = String(control.value).trim();
+    if (val.length === 0) return null;
+    return this.validationService.isValidAddress(val)
+      ? null
+      : { invalidAddress: true };
+  }
+
   // Note: Using Angular's built-in Validators.email for generic email validation
   /** Trim leading/trailing spaces for all string controls in the form */
+  /** Trim and normalize string controls using ValidationService */
   trimAllStringControls() {
     if (!this.studentForm) return;
     Object.keys(this.studentForm.controls).forEach((key) => {
@@ -518,10 +533,11 @@ export class ViewStudentsComponent implements OnInit {
       if (!control) return;
       const val = control.value;
       if (typeof val === 'string') {
-        const trimmed = val.trim();
+        const res = this.validationService.trimStringValue(val);
+        const trimmed = res.trimmed;
         const currentErrors = control.errors ? { ...control.errors } : {};
 
-        if (val.length > 0 && trimmed.length === 0) {
+        if (res.onlySpaces) {
           currentErrors['onlySpaces'] = true;
           control.setErrors(currentErrors);
           return;
@@ -538,21 +554,6 @@ export class ViewStudentsComponent implements OnInit {
         }
       }
     });
-  }
-
-  /**
-   * Custom validator for phone numbers (10 digits)
-   */
-  phoneValidator(control: any) {
-    if (!control.value) return null;
-    const digitsOnly = control.value.replace(/\D/g, '');
-    if (digitsOnly.length !== 10) {
-      return { invalidPhone: true };
-    }
-    if (/^0+$/.test(digitsOnly)) {
-      return { invalidPhone: true };
-    }
-    return null;
   }
 
   getProgramDisplay(value: any): string {
@@ -587,69 +588,39 @@ export class ViewStudentsComponent implements OnInit {
     return spacedText.charAt(0).toUpperCase() + spacedText.slice(1);
   }
 
-  /**
-   * Custom validator for zip codes (5 digits)
-   */
-  zipCodeValidator(control: any) {
-    if (!control.value) return null;
-    const digitsOnly = control.value.replace(/\D/g, '');
-    if (digitsOnly.length !== 5) {
-      return { invalidZipCode: true };
-    }
-    if (/^0+$/.test(digitsOnly)) {
-      return { invalidZipCode: true };
-    }
-    return null;
-  }
+  // Zip code validation provided by ValidationService
 
-  /**
-   * Formats name input - removes non-letter characters
-   */
   formatNameInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    value = value.replace(/[^a-zA-Z\s'-]/g, '');
+    const raw = input.value;
+    const value = this.validationService.formatNameValue(raw);
     input.value = value;
     if (this.studentForm.get(fieldName)) {
       this.studentForm.get(fieldName)?.setValue(value, { emitEvent: false });
     }
   }
 
-  /**
-   * Formats phone input - keeps only digits, limits to 10
-   */
   formatPhoneNumber(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    value = value.replace(/\D/g, '');
-    value = value.substring(0, 10);
+    const raw = input.value;
+    const value = this.validationService.formatPhoneDigits(raw);
     input.value = value;
     if (this.studentForm.get(fieldName)) {
       this.studentForm.get(fieldName)?.setValue(value, { emitEvent: false });
     }
   }
 
-  /**
-   * Formats zip code input - keeps only digits, limits to 5
-   */
   formatZipCode(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    value = value.replace(/\D/g, '');
-    value = value.substring(0, 5);
+    const raw = input.value;
+    const value = this.validationService.formatZipDigits(raw);
     input.value = value;
     if (this.studentForm.get(fieldName)) {
       this.studentForm.get(fieldName)?.setValue(value, { emitEvent: false });
     }
   }
 
-  /** Custom email validator using project's regex */
-  emailValidator(control: any) {
-    if (!control.value) return null;
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!re.test(control.value)) return { email: true };
-    return null;
-  }
+  // Email validator provided by ValidationService
 
   /**
    * Gets formatted error message for a field
