@@ -102,82 +102,112 @@ export class RegistrationComponent implements OnInit {
       // Child Info
       childFirstName: [
         '',
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
-      childMiddleName: ['', this.nameValidator.bind(this)],
-      childLastName: ['', [Validators.required, this.nameValidator.bind(this)]],
+      childMiddleName: ['', this.validationService.nameValidator()],
+      childLastName: [
+        '',
+        [Validators.required, this.validationService.nameValidator()],
+      ],
       gender: ['', Validators.required],
-      dateOfBirth: ['', Validators.required],
-      placeOfBirth: ['', [Validators.required, this.nameValidator.bind(this)]],
+      dateOfBirth: [
+        '',
+        [Validators.required, this.validationService.dateOfBirthValidator()],
+      ],
+      placeOfBirth: [
+        '',
+        [Validators.required, this.validationService.nameValidator()],
+      ],
 
       // Parent/Guardian Info
       parentFirstName: [
         '',
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
-      parentMiddleName: ['', this.nameValidator.bind(this)],
+      parentMiddleName: ['', this.validationService.nameValidator()],
       parentLastName: [
         '',
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       relationship: ['', Validators.required],
-      parentAddress1: ['', Validators.required],
+      parentAddress1: [
+        '',
+        [Validators.required, this.validationService.addressValidator()],
+      ],
       parentAddress2: [''],
       parentCountry: [
         { value: 'United States', disabled: true },
         Validators.required,
       ],
       parentState: ['', Validators.required],
-      parentCity: ['', [Validators.required, this.nameValidator.bind(this)]],
+      parentCity: [
+        '',
+        [Validators.required, this.validationService.cityValidator()],
+      ],
       parentZipCode: [
         '',
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
-      parentEmail: ['', [Validators.required, this.emailValidator.bind(this)]],
+      parentEmail: [
+        '',
+        [Validators.required, this.validationService.emailValidator()],
+      ],
       parentPhoneType: ['', Validators.required],
       parentPhoneNumber: [
         '',
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
       parentAlternatePhoneType: [''],
-      parentAlternatePhoneNumber: ['', this.phoneValidator.bind(this)],
+      parentAlternatePhoneNumber: ['', this.validationService.phoneValidator()],
 
       // Medical Info
       physicianFirstName: [
         '',
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
-      physicianMiddleName: ['', this.nameValidator.bind(this)],
+      physicianMiddleName: ['', this.validationService.nameValidator()],
       physicianLastName: [
         '',
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
-      medicalAddress1: ['', Validators.required],
+      medicalAddress1: [
+        '',
+        [Validators.required, this.validationService.addressValidator()],
+      ],
       medicalAddress2: [''],
       medicalCountry: [
         { value: 'United States', disabled: true },
         Validators.required,
       ],
       medicalState: ['', Validators.required],
-      medicalCity: ['', [Validators.required, this.nameValidator.bind(this)]],
+      medicalCity: [
+        '',
+        [Validators.required, this.validationService.cityValidator()],
+      ],
       medicalZipCode: [
         '',
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       medicalPhoneType: ['', Validators.required],
       medicalPhoneNumber: [
         '',
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
       medicalAlternatePhoneType: [''],
-      medicalAlternatePhoneNumber: ['', this.phoneValidator.bind(this)],
+      medicalAlternatePhoneNumber: [
+        '',
+        this.validationService.phoneValidator(),
+      ],
 
       // Care Facility Info
       emergencyContactName: [
         '',
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
-      careFacilityAddress1: ['', Validators.required],
+      careFacilityAddress1: [
+        '',
+        [Validators.required, this.validationService.addressValidator()],
+      ],
       careFacilityAddress2: [''],
       careFacilityCountry: [
         { value: 'United States', disabled: true },
@@ -186,16 +216,16 @@ export class RegistrationComponent implements OnInit {
       careFacilityState: ['', Validators.required],
       careFacilityCity: [
         '',
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.cityValidator()],
       ],
       careFacilityZipCode: [
         '',
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       careFacilityPhoneType: ['', Validators.required],
       emergencyPhoneNumber: [
         '',
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
 
       // Enrollment Program Details
@@ -293,31 +323,6 @@ export class RegistrationComponent implements OnInit {
     return spacedText.charAt(0).toUpperCase() + spacedText.slice(1);
   }
 
-  /**
-   * Validates name fields to ensure they contain only letters, spaces, hyphens, and apostrophes
-   * Empty values are allowed (for optional fields like middle name)
-   * Custom validator for use in FormBuilder
-   */
-  nameValidator(control: any) {
-    if (control.value == null) return null;
-    const raw = String(control.value);
-    const trimmed = raw.trim();
-    if (trimmed.length === 0) return null;
-    const nameRegex = /^[a-zA-Z\s'-]+$/;
-    if (!nameRegex.test(trimmed)) {
-      return { invalidName: true };
-    }
-    return null;
-  }
-
-  /** Custom email validator using project's regex */
-  emailValidator(control: any) {
-    if (!control.value) return null;
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!re.test(control.value)) return { email: true };
-    return null;
-  }
-
   /** Trim leading/trailing spaces for all string controls in the form */
   trimAllStringControls() {
     if (!this.registrationForm) return;
@@ -326,12 +331,13 @@ export class RegistrationComponent implements OnInit {
       if (!control) return;
       const val = control.value;
       if (typeof val === 'string') {
-        const trimmed = val.trim();
+        const res = this.validationService.trimStringValue(val);
+        const trimmed = res.trimmed;
         const currentErrors = control.errors ? { ...control.errors } : {};
 
         // If the user entered only spaces (has length but trims to empty),
         // set an explicit onlySpaces error and do not overwrite the value.
-        if (val.length > 0 && trimmed.length === 0) {
+        if (res.onlySpaces) {
           currentErrors['onlySpaces'] = true;
           control.setErrors(currentErrors);
           return;
@@ -355,46 +361,13 @@ export class RegistrationComponent implements OnInit {
   // Note: Using Angular's built-in Validators.email for generic email validation
 
   /**
-   * Validates phone numbers to be 10 digits only (US format)
-   * Custom validator for use in FormBuilder
-   */
-  phoneValidator(control: any) {
-    if (!control.value) return null;
-    const digitsOnly = control.value.replace(/\D/g, '');
-    if (digitsOnly.length !== 10) {
-      return { invalidPhone: true };
-    }
-    if (/^0+$/.test(digitsOnly)) {
-      return { invalidPhone: true };
-    }
-    return null;
-  }
-
-  /**
-   * Validates zip codes to be 5 digits (US format)
-   * Custom validator for use in FormBuilder
-   */
-  zipCodeValidator(control: any) {
-    if (!control.value) return null;
-    const digitsOnly = control.value.replace(/\D/g, '');
-    if (digitsOnly.length !== 5) {
-      return { invalidZipCode: true };
-    }
-    if (/^0+$/.test(digitsOnly)) {
-      return { invalidZipCode: true };
-    }
-    return null;
-  }
-
-  /**
    * Formats name input by removing invalid characters
    * For name fields: keeps only letters, spaces, hyphens, apostrophes
    */
   formatNameInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    // Allow only letters, spaces, hyphens, and apostrophes
-    value = value.replace(/[^a-zA-Z\s'-]/g, '');
+    const raw = input.value;
+    const value = this.validationService.formatNameValue(raw);
     input.value = value;
     this.registrationForm.get(fieldName)?.setValue(value, { emitEvent: false });
   }
@@ -404,11 +377,8 @@ export class RegistrationComponent implements OnInit {
    */
   formatPhoneInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    // Remove all non-digits
-    value = value.replace(/\D/g, '');
-    // Limit to 10 digits
-    value = value.substring(0, 10);
+    const raw = input.value;
+    const value = this.validationService.formatPhoneDigits(raw);
     input.value = value;
     this.registrationForm.get(fieldName)?.setValue(value, { emitEvent: false });
   }
@@ -418,11 +388,8 @@ export class RegistrationComponent implements OnInit {
    */
   formatZipCode(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    // Remove all non-digits
-    value = value.replace(/\D/g, '');
-    // Limit to 5 digits
-    value = value.substring(0, 5);
+    const raw = input.value;
+    const value = this.validationService.formatZipDigits(raw);
     input.value = value;
     this.registrationForm.get(fieldName)?.setValue(value, { emitEvent: false });
   }
@@ -442,14 +409,7 @@ export class RegistrationComponent implements OnInit {
    * @returns {string} Formatted phone number or original if not 10 digits
    */
   formatPhoneNumber(phoneNumber: string): string {
-    const digitsOnly = phoneNumber.replace(/\D/g, '');
-    if (digitsOnly.length === 10) {
-      return `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(
-        3,
-        6
-      )}-${digitsOnly.slice(6)}`;
-    }
-    return phoneNumber;
+    return this.validationService.formatPhoneNumber(phoneNumber);
   }
 
   /**

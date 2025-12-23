@@ -210,15 +210,15 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       // Child Info
       childFirstName: [
         { value: data.childInfo.firstName, disabled: !this.isEditMode },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       childMiddleName: [
         { value: data.childInfo.middleName, disabled: !this.isEditMode },
-        this.nameValidator.bind(this),
+        this.validationService.nameValidator(),
       ],
       childLastName: [
         { value: data.childInfo.lastName, disabled: !this.isEditMode },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       gender: [
         { value: data.childInfo.gender, disabled: !this.isEditMode },
@@ -226,11 +226,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       dateOfBirth: [
         { value: data.childInfo.dateOfBirth, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.validationService.dateOfBirthValidator()],
       ],
       placeOfBirth: [
         { value: data.childInfo.placeOfBirth, disabled: !this.isEditMode },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
 
       // Parent/Guardian Info
@@ -239,18 +239,18 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.parentGuardianInfo.firstName,
           disabled: !this.isEditMode,
         },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       parentMiddleName: [
         {
           value: data.parentGuardianInfo.middleName,
           disabled: !this.isEditMode,
         },
-        this.nameValidator.bind(this),
+        this.validationService.nameValidator(),
       ],
       parentLastName: [
         { value: data.parentGuardianInfo.lastName, disabled: !this.isEditMode },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       relationship: [
         {
@@ -261,7 +261,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       parentAddress1: [
         { value: data.parentGuardianInfo.address1, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.validationService.addressValidator()],
       ],
       parentAddress2: [
         { value: data.parentGuardianInfo.address2, disabled: !this.isEditMode },
@@ -278,15 +278,15 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       parentCity: [
         { value: data.parentGuardianInfo.city, disabled: !this.isEditMode },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       parentZipCode: [
         { value: data.parentGuardianInfo.zipCode, disabled: !this.isEditMode },
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       parentEmail: [
         { value: data.parentGuardianInfo.email, disabled: !this.isEditMode },
-        [Validators.required, this.emailValidator.bind(this)],
+        [Validators.required, this.validationService.emailValidator()],
       ],
       parentPhoneType: [
         {
@@ -300,7 +300,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.parentGuardianInfo.phoneNumber,
           disabled: !this.isEditMode,
         },
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
       parentAlternatePhoneType: [
         {
@@ -313,7 +313,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.parentGuardianInfo.alternatePhoneNumber,
           disabled: !this.isEditMode,
         },
-        this.phoneValidator.bind(this),
+        this.validationService.phoneValidator(),
       ],
 
       // Medical Info
@@ -322,25 +322,25 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.medicalInfo.physicianFirstName,
           disabled: !this.isEditMode,
         },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       physicianMiddleName: [
         {
           value: data.medicalInfo.physicianMiddleName || '',
           disabled: !this.isEditMode,
         },
-        this.nameValidator.bind(this),
+        this.validationService.nameValidator(),
       ],
       physicianLastName: [
         {
           value: data.medicalInfo.physicianLastName,
           disabled: !this.isEditMode,
         },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       medicalAddress1: [
         { value: data.medicalInfo.address1, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.validationService.addressValidator()],
       ],
       medicalAddress2: [
         { value: data.medicalInfo.address2, disabled: !this.isEditMode },
@@ -354,11 +354,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       medicalCity: [
         { value: data.medicalInfo.city, disabled: !this.isEditMode },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       medicalZipCode: [
         { value: data.medicalInfo.zipCode, disabled: !this.isEditMode },
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       medicalPhoneType: [
         { value: data.medicalInfo.phoneType, disabled: !this.isEditMode },
@@ -366,7 +366,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       medicalPhoneNumber: [
         { value: data.medicalInfo.phoneNumber, disabled: !this.isEditMode },
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
       medicalAlternatePhoneType: [
         {
@@ -379,7 +379,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.medicalInfo.alternatePhoneNumber,
           disabled: !this.isEditMode,
         },
-        this.phoneValidator.bind(this),
+        this.validationService.phoneValidator(),
       ],
 
       // Care Facility Info
@@ -388,11 +388,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.careFacilityInfo.emergencyContactName,
           disabled: !this.isEditMode,
         },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       careFacilityAddress1: [
         { value: data.careFacilityInfo.address1, disabled: !this.isEditMode },
-        Validators.required,
+        [Validators.required, this.validationService.addressValidator()],
       ],
       careFacilityAddress2: [
         { value: data.careFacilityInfo.address2, disabled: !this.isEditMode },
@@ -409,11 +409,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       careFacilityCity: [
         { value: data.careFacilityInfo.city, disabled: !this.isEditMode },
-        [Validators.required, this.nameValidator.bind(this)],
+        [Validators.required, this.validationService.nameValidator()],
       ],
       careFacilityZipCode: [
         { value: data.careFacilityInfo.zipCode, disabled: !this.isEditMode },
-        [Validators.required, this.zipCodeValidator.bind(this)],
+        [Validators.required, this.validationService.zipCodeValidator()],
       ],
       careFacilityPhoneType: [
         { value: data.careFacilityInfo.phoneType, disabled: !this.isEditMode },
@@ -424,14 +424,14 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
           value: data.careFacilityInfo.emergencyPhoneNumber,
           disabled: !this.isEditMode,
         },
-        [Validators.required, this.phoneValidator.bind(this)],
+        [Validators.required, this.validationService.phoneValidator()],
       ],
 
       // Enrollment Program Details
       programType: [
         {
           value: this.getProgramTypeId(
-            data.enrollmentProgramDetails.programType
+            data.enrollmentProgramDetails?.programType
           ),
           disabled: true,
         },
@@ -439,20 +439,23 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       ],
       roomType: [
         {
-          value: this.getRoomTypeId(data.enrollmentProgramDetails.roomType),
+          value: this.getRoomTypeId(data.enrollmentProgramDetails?.roomType),
           disabled: true,
         },
         Validators.required,
       ],
       planType: [
         {
-          value: data.enrollmentProgramDetails.planType || null,
+          value: data.enrollmentProgramDetails?.planType || null,
           disabled: true,
         },
         Validators.required,
       ],
       enrollmentDate: [
-        { value: data.enrollmentProgramDetails.enrollmentDate, disabled: true },
+        {
+          value: data.enrollmentProgramDetails?.enrollmentDate || '',
+          disabled: true,
+        },
         Validators.required,
       ],
     });
@@ -599,14 +602,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
    * Format phone number
    */
   formatPhoneNumber(phoneNumber: string): string {
-    const digitsOnly = phoneNumber.replace(/\D/g, '');
-    if (digitsOnly.length === 10) {
-      return `(${digitsOnly.slice(0, 3)}) ${digitsOnly.slice(
-        3,
-        6
-      )}-${digitsOnly.slice(6)}`;
-    }
-    return phoneNumber;
+    return this.validationService.formatPhoneNumber(phoneNumber);
   }
 
   /**
@@ -679,24 +675,6 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
     if (!text) return '';
     const spacedText = text.replace(/([A-Z])/g, ' $1');
     return spacedText.charAt(0).toUpperCase() + spacedText.slice(1);
-  }
-
-  /**
-   * Handle search functionality
-   */
-  onSearch(term: string): void {
-    this.searchTerm = term.toLowerCase();
-    this.highlightedFields.clear();
-
-    if (this.searchTerm.length > 0) {
-      const allValues = this.registrationForm.getRawValue();
-      Object.keys(allValues).forEach((key) => {
-        const value = String(allValues[key]).toLowerCase();
-        if (value.includes(this.searchTerm)) {
-          this.highlightedFields.add(key);
-        }
-      });
-    }
   }
 
   /**
@@ -951,36 +929,32 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         enrollmentDate: this.registrationForm.get('enrollmentDate')?.value,
       };
 
-      this.apiService.updateRegistration(childId, registrationData).subscribe({
+      // send registration + enrollment together so backend can commit atomically
+      const payload = {
+        childInfo: this.registrationForm ? undefined : undefined,
+        parentGuardianInfo: this.registrationForm ? undefined : undefined,
+        medicalInfo: this.registrationForm ? undefined : undefined,
+        careFacilityInfo: this.registrationForm ? undefined : undefined,
+      };
+
+      // Use existing registrationData object and attach enrollmentProgramDetails
+      const base = registrationData || {};
+      const combined = {
+        ...base,
+        enrollmentProgramDetails,
+      } as RegistrationData;
+
+      this.apiService.updateRegistration(childId, combined).subscribe({
         next: () => {
-          // then update enrollment
-          this.apiService
-            .updateEnrollment(childId, { enrollmentProgramDetails })
-            .subscribe({
-              next: () => {
-                this.registrationDataService.saveRegistrationData(
-                  registrationData
-                );
-                this.notificationService.success('Saved Changes Successfully!');
-                this.successMessage = 'Saved Changes Successfully!';
-                this.originalFormData = this.registrationForm.getRawValue();
-                this.isSaving = false;
-                setTimeout(() => {
-                  this.disableEditMode();
-                  this.successMessage = '';
-                }, 2000);
-              },
-              error: (err) => {
-                console.error('Update enrollment failed:', err);
-                this.isSaving = false;
-                this.errorMessage =
-                  'Failed to save enrollment changes. Please try again later.';
-                this.notificationService.error(
-                  'Failed to save enrollment changes'
-                );
-                this.scrollToFirstInvalid();
-              },
-            });
+          this.registrationDataService.saveRegistrationData(registrationData);
+          this.notificationService.success('Saved Changes Successfully!');
+          this.successMessage = 'Saved Changes Successfully!';
+          this.originalFormData = this.registrationForm.getRawValue();
+          this.isSaving = false;
+          setTimeout(() => {
+            this.disableEditMode();
+            this.successMessage = '';
+          }, 2000);
         },
         error: (error: any) => {
           console.error('Update registration failed:', error);
@@ -1010,23 +984,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
     this.router.navigate(['/students']);
   }
 
-  /**
-   * Custom validator for name fields
-   * Allows only letters, spaces, hyphens, and apostrophes
-   */
-  nameValidator(control: any) {
-    if (control.value == null) return null;
-    const raw = String(control.value);
-    const trimmed = raw.trim();
-    if (trimmed.length === 0) return null;
-    const nameRegex = /^[a-zA-Z\s'-]+$/;
-    if (!nameRegex.test(trimmed)) {
-      return { invalidName: true };
-    }
-    return null;
-  }
-
-  // Note: Using Angular's built-in Validators.email for generic email validation
+  // Validators (name/address/email/etc.) are provided by ValidationService; trimming centralized below.
 
   /** Trim leading/trailing spaces for all string controls in the form */
   trimAllStringControls() {
@@ -1036,10 +994,11 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       if (!control) return;
       const val = control.value;
       if (typeof val === 'string') {
-        const trimmed = val.trim();
+        const res = this.validationService.trimStringValue(val);
+        const trimmed = res.trimmed;
         const currentErrors = control.errors ? { ...control.errors } : {};
 
-        if (val.length > 0 && trimmed.length === 0) {
+        if (res.onlySpaces) {
           currentErrors['onlySpaces'] = true;
           control.setErrors(currentErrors);
           return;
@@ -1058,43 +1017,12 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Custom validator for phone numbers (10 digits)
-   */
-  phoneValidator(control: any) {
-    if (!control.value) return null;
-    const digitsOnly = control.value.replace(/\D/g, '');
-    if (digitsOnly.length !== 10) {
-      return { invalidPhone: true };
-    }
-    if (/^0+$/.test(digitsOnly)) {
-      return { invalidPhone: true };
-    }
-    return null;
-  }
+  // Phone/zip/email validators and input formatters centralized in ValidationService
 
-  /**
-   * Custom validator for zip codes (5 digits)
-   */
-  zipCodeValidator(control: any) {
-    if (!control.value) return null;
-    const digitsOnly = control.value.replace(/\D/g, '');
-    if (digitsOnly.length !== 5) {
-      return { invalidZipCode: true };
-    }
-    if (/^0+$/.test(digitsOnly)) {
-      return { invalidZipCode: true };
-    }
-    return null;
-  }
-
-  /**
-   * Formats name input - removes non-letter characters
-   */
   formatNameInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    value = value.replace(/[^a-zA-Z\s'-]/g, '');
+    const raw = input.value;
+    const value = this.validationService.formatNameValue(raw);
     input.value = value;
     if (this.registrationForm.get(fieldName)) {
       this.registrationForm
@@ -1103,14 +1031,10 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Formats phone input - keeps only digits, limits to 10
-   */
   formatPhoneInput(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    value = value.replace(/\D/g, '');
-    value = value.substring(0, 10);
+    const raw = input.value;
+    const value = this.validationService.formatPhoneDigits(raw);
     input.value = value;
     if (this.registrationForm.get(fieldName)) {
       this.registrationForm
@@ -1119,28 +1043,16 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Formats zip code input - keeps only digits, limits to 5
-   */
   formatZipCode(event: any, fieldName: string) {
     const input = event.target as HTMLInputElement;
-    let value = input.value;
-    value = value.replace(/\D/g, '');
-    value = value.substring(0, 5);
+    const raw = input.value;
+    const value = this.validationService.formatZipDigits(raw);
     input.value = value;
     if (this.registrationForm.get(fieldName)) {
       this.registrationForm
         .get(fieldName)
         ?.setValue(value, { emitEvent: false });
     }
-  }
-
-  /** Custom email validator using project's regex */
-  emailValidator(control: any) {
-    if (!control.value) return null;
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!re.test(control.value)) return { email: true };
-    return null;
   }
 
   /**

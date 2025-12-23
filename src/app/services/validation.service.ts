@@ -9,11 +9,13 @@ import { ValidatorFn, AbstractControl } from '@angular/forms';
  * Provides validators for names, emails, phones, addresses, dates, zip codes
  */
 export class ValidationService {
-  private readonly nameRegex = /^(?=.*[a-zA-ZÀ-ÿ'])[a-zA-ZÀ-ÿ' ]{1,20}$/;
+  // Name must start with a letter and may contain letters, spaces, hyphens, apostrophes (1-20 chars)
+  private readonly nameRegex = /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'\- ]{0,19}$/;
   private readonly phoneRegex = /^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/;
-  private readonly addressRegex =
-    /^(?!\s+$)(?=.*[A-Za-z0-9])[A-Za-z0-9\s.,'#\-\/&()]{3,100}$/;
-  private readonly cityRegex = /^[A-Za-zÀ-ÿ''.\- ]{1,100}$/;
+  // Address must start with letter or number, 3-100 chars
+  private readonly addressRegex = /^[A-Za-z0-9][A-Za-z0-9\s.,'#\-\/&()]{2,99}$/;
+  // City must start with a letter, allow letters, periods, hyphens, apostrophes and spaces
+  private readonly cityRegex = /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'.\- ]{0,99}$/;
   private readonly emailRegex =
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   private readonly dateOfBirthRegex =
@@ -54,8 +56,96 @@ export class ValidationService {
     };
   }
 
+  /**
+   * Validator for names: must start with letter and match nameRegex
+   */
+  nameValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      const str = String(val).trim();
+      if (str.length === 0) return null;
+      return this.nameRegex.test(str) ? null : { invalidName: true };
+    };
+  }
+
+  /**
+   * Validator for phone numbers (10 digits)
+   */
+  phoneValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      const digits = String(val).replace(/\D/g, '');
+      if (digits.length !== 10 || /^0+$/.test(digits))
+        return { invalidPhone: true };
+      return null;
+    };
+  }
+
+  /**
+   * Validator for US zip codes (5 digits)
+   */
+  zipCodeValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      const str = String(val).replace(/\D/g, '');
+      if (!this.zipCodeRegex.test(str) || /^0+$/.test(str))
+        return { invalidZipCode: true };
+      return null;
+    };
+  }
+
+  /**
+   * Validator for city names
+   */
+  cityValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      const str = String(val).trim();
+      if (str.length === 0) return null;
+      return this.cityRegex.test(str) ? null : { invalidCity: true };
+    };
+  }
+
   isValidDateOfBirth(value: string): boolean {
     return this.dateOfBirthRegex.test(value);
+  }
+
+  /**
+   * Validator for Date of Birth fields.
+   * Enforces: valid date, not in the future (today or later), and not earlier than 2000-01-01.
+   * Usage: [Validators.required, validationService.dateOfBirthValidator()]
+   */
+  dateOfBirthValidator(minDate?: Date): ValidatorFn {
+    const min = minDate ? new Date(minDate) : new Date(2000, 0, 1);
+    min.setHours(0, 0, 0, 0);
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return { invalidDate: true };
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (d >= today) return { futureDate: true };
+      if (d < min) return { minDate: true };
+      return null;
+    };
+  }
+
+  /**
+   * Validator for addresses using the service regex.
+   */
+  addressValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const val = control.value;
+      if (!val) return null;
+      return this.addressRegex.test(String(val))
+        ? null
+        : { invalidAddress: true };
+    };
   }
 
   isValidZipCode(value: string): boolean {
@@ -70,6 +160,45 @@ export class ValidationService {
     const digitsOnly = phoneNumber.replace(/\D/g, '');
     // must be exactly 10 digits and not all zeros
     return digitsOnly.length === 10 && !/^0+$/.test(digitsOnly);
+  }
+
+  /**
+   * Trims a string and detects if it was only spaces
+   * Returns an object with trimmed value and a flag indicating only-spaces
+   */
+  trimStringValue(value: string): { trimmed: string; onlySpaces: boolean } {
+    if (value == null) return { trimmed: '', onlySpaces: false };
+    const raw = String(value);
+    const trimmed = raw.trim();
+    const onlySpaces = raw.length > 0 && trimmed.length === 0;
+    return { trimmed, onlySpaces };
+  }
+
+  /**
+   * Format a name input value by removing invalid characters
+   * Keeps letters, spaces, hyphens and apostrophes
+   */
+  formatNameValue(value: string): string {
+    if (value == null) return '';
+    return String(value).replace(/[^a-zA-ZÀ-ÿ\s' -]/g, '');
+  }
+
+  /**
+   * Format a phone input value: keep only digits, max 10
+   */
+  formatPhoneDigits(value: string): string {
+    if (value == null) return '';
+    const digits = String(value).replace(/\D/g, '');
+    return digits.substring(0, 10);
+  }
+
+  /**
+   * Format a zip code value: keep only digits, max 5
+   */
+  formatZipDigits(value: string): string {
+    if (value == null) return '';
+    const digits = String(value).replace(/\D/g, '');
+    return digits.substring(0, 5);
   }
 
   /**
@@ -164,11 +293,14 @@ export class ValidationService {
 
     const errors = control.errors;
     if (errors['onlySpaces']) return 'Only spaces are not allowed';
+    if (errors['futureDate']) return 'Date of birth cannot be in the future';
     if (errors['required'])
       return label ? `${label} is required` : 'This field is required';
     if (errors['email']) return 'Please enter a valid email address';
+    if (errors['invalidAddress'])
+      return 'Address must start with a letter or number and be 3-100 characters';
     if (errors['invalidName'])
-      return 'Only letters, spaces, hyphens, and apostrophes are allowed';
+      return 'Only starting with letters in between spaces, hyphens, and apostrophes are allowed';
     if (errors['invalidPhone']) return 'Phone number must be exactly 10 digits';
     if (errors['invalidZipCode']) return 'Zip code must be exactly 5 digits';
     return 'Invalid input';
