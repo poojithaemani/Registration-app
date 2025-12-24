@@ -75,8 +75,10 @@ export class ValidationService {
   phoneValidator(): ValidatorFn {
     return (control: AbstractControl) => {
       const val = control.value;
-      if (!val) return null;
-      const digits = String(val).replace(/\D/g, '');
+      if (val == null) return null;
+      const str = String(val).trim();
+      if (str.length === 0) return null;
+      const digits = str.replace(/\D/g, '');
       if (digits.length !== 10 || /^0+$/.test(digits))
         return { invalidPhone: true };
       return null;
@@ -124,7 +126,12 @@ export class ValidationService {
     min.setHours(0, 0, 0, 0);
     return (control: AbstractControl) => {
       const val = control.value;
-      if (!val) return null;
+      if (!val) {
+        if (control.dirty) {
+          return { invalidDate: true };
+        }
+        return null;
+      }
       const d = new Date(val);
       if (isNaN(d.getTime())) return { invalidDate: true };
       const today = new Date();
@@ -157,7 +164,10 @@ export class ValidationService {
   }
 
   isValidPhoneNumber(phoneNumber: string): boolean {
-    const digitsOnly = phoneNumber.replace(/\D/g, '');
+    if (!phoneNumber) return false;
+    const str = String(phoneNumber).trim();
+    if (str.length === 0) return false;
+    const digitsOnly = str.replace(/\D/g, '');
     // must be exactly 10 digits and not all zeros
     return digitsOnly.length === 10 && !/^0+$/.test(digitsOnly);
   }
@@ -293,14 +303,16 @@ export class ValidationService {
 
     const errors = control.errors;
     if (errors['onlySpaces']) return 'Only spaces are not allowed';
-    if (errors['futureDate']) return 'Date of birth cannot be in the future';
+    if (errors['invalidDate'] || errors['futureDate'] || errors['minDate']) return 'Invalid date of birth';
     if (errors['required'])
       return label ? `${label} is required` : 'This field is required';
     if (errors['email']) return 'Please enter a valid email address';
     if (errors['invalidAddress'])
-      return 'Address must start with a letter or number and be 3-100 characters';
+      return 'Address must start with a letter or number';
     if (errors['invalidName'])
-      return 'Only starting with letters in between spaces, hyphens, and apostrophes are allowed';
+      return 'Must start with a letter and contain only letters, spaces, hyphens, and apostrophes';
+    if (errors['invalidCity'])
+      return 'Must start with a letter and contain only letters in between spaces, hyphens, and apostrophes are allowed';
     if (errors['invalidPhone']) return 'Phone number must be exactly 10 digits';
     if (errors['invalidZipCode']) return 'Zip code must be exactly 5 digits';
     return 'Invalid input';

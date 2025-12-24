@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-students',
@@ -26,6 +28,8 @@ export class StudentsComponent implements OnInit {
   isLoading: boolean = false;
   error: string = '';
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private apiService: ApiService,
     private router: Router,
@@ -43,27 +47,35 @@ export class StudentsComponent implements OnInit {
     this.isLoading = true;
     this.error = '';
 
-    this.apiService.getAllStudents().subscribe({
-      next: (response: any) => {
-        if (response.success) {
-          this.students = response.data;
-          this.filteredStudents = [...this.students];
-          this.totalItems = this.students.length;
-          this.currentPage = 1;
-          this.updatePagination();
-          this.notificationService.success(
-            `Loaded ${this.students.length} students`
-          );
-        }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading students:', error);
-        this.error = 'Failed to load students. Please try again.';
-        this.isLoading = false;
-        this.notificationService.error('Failed to load students');
-      },
-    });
+    this.apiService
+      .getAllStudents()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            this.students = response.data;
+            this.filteredStudents = [...this.students];
+            this.totalItems = this.students.length;
+            this.currentPage = 1;
+            this.updatePagination();
+            this.notificationService.success(
+              `Loaded ${this.students.length} students`
+            );
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error loading students:', error);
+          this.error = 'Failed to load students. Please try again.';
+          this.isLoading = false;
+          this.notificationService.error('Failed to load students');
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**

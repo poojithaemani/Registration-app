@@ -20,6 +20,8 @@ import {
   PaymentPlan,
 } from '../services/api.service';
 import { NotificationService } from '../services/notification.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 /**
  * RegistrationComponent handles the multi-step student registration form
  * Collects comprehensive information across 5 sections:
@@ -54,6 +56,8 @@ export class RegistrationComponent implements OnInit {
   genderOptions = ['Male', 'Female'];
   planTypeOptions: PaymentPlan[] = [];
 
+  private destroy$ = new Subject<void>();
+
   minDateOfBirth = new Date(2000, 0, 1);
 
   /** Today's date for validation */
@@ -79,6 +83,11 @@ export class RegistrationComponent implements OnInit {
     private notificationService: NotificationService
   ) {
     this.usStates = this.usStatesService.getAllStates();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -134,7 +143,7 @@ export class RegistrationComponent implements OnInit {
         '',
         [Validators.required, this.validationService.addressValidator()],
       ],
-      parentAddress2: [''],
+      parentAddress2: ['', this.validationService.addressValidator()],
       parentCountry: [
         { value: 'United States', disabled: true },
         Validators.required,
@@ -174,7 +183,7 @@ export class RegistrationComponent implements OnInit {
         '',
         [Validators.required, this.validationService.addressValidator()],
       ],
-      medicalAddress2: [''],
+      medicalAddress2: ['', this.validationService.addressValidator()],
       medicalCountry: [
         { value: 'United States', disabled: true },
         Validators.required,
@@ -208,7 +217,7 @@ export class RegistrationComponent implements OnInit {
         '',
         [Validators.required, this.validationService.addressValidator()],
       ],
-      careFacilityAddress2: [''],
+      careFacilityAddress2: ['', this.validationService.addressValidator()],
       careFacilityCountry: [
         { value: 'United States', disabled: true },
         Validators.required,
@@ -232,7 +241,10 @@ export class RegistrationComponent implements OnInit {
       programType: ['', Validators.required],
       roomType: ['', Validators.required],
       planType: ['', Validators.required],
-      enrollmentDate: [this.getTodayDate(), Validators.required],
+      enrollmentDate: [
+        { value: this.getTodayDate(), disabled: true },
+        Validators.required,
+      ],
     });
   }
 
@@ -243,30 +255,40 @@ export class RegistrationComponent implements OnInit {
    * If any of the calls fail, an error notification is displayed
    */
   loadDropdownOptions(): void {
-    this.apiService.getAllPrograms().subscribe({
-      next: (data) => {
-        this.programTypeOptions = this.filterExcludedOptions(
-          data,
-          'programname'
-        );
-      },
-      error: () => this.notificationService.error('Failed to load programs'),
-    });
+    this.apiService
+      .getAllPrograms()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.programTypeOptions = this.filterExcludedOptions(
+            data,
+            'programname'
+          );
+        },
+        error: () => this.notificationService.error('Failed to load programs'),
+      });
 
-    this.apiService.getAllRoomTypes().subscribe({
-      next: (data) => {
-        this.roomTypeOptions = this.filterExcludedOptions(data, 'roomtype');
-      },
-      error: () => this.notificationService.error('Failed to load room types'),
-    });
+    this.apiService
+      .getAllRoomTypes()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.roomTypeOptions = this.filterExcludedOptions(data, 'roomtype');
+        },
+        error: () =>
+          this.notificationService.error('Failed to load room types'),
+      });
 
-    this.apiService.getAllPlans().subscribe({
-      next: (data) => {
-        this.planTypeOptions = this.filterExcludedOptions(data, 'plantype');
-      },
-      error: () =>
-        this.notificationService.error('Failed to load payment plans'),
-    });
+    this.apiService
+      .getAllPlans()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.planTypeOptions = this.filterExcludedOptions(data, 'plantype');
+        },
+        error: () =>
+          this.notificationService.error('Failed to load payment plans'),
+      });
   }
 
   filterExcludedOptions(list: any[], field: string): any[] {
@@ -501,6 +523,10 @@ export class RegistrationComponent implements OnInit {
         this.registrationForm.get('parentPhoneNumber')?.value
       )
     ) {
+      const control = this.registrationForm.get('parentPhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
       this.errorMessage = 'Parent phone number must be 10 digits';
       this.scrollToFirstInvalid();
       return;
@@ -511,6 +537,10 @@ export class RegistrationComponent implements OnInit {
         this.registrationForm.get('medicalPhoneNumber')?.value
       )
     ) {
+      const control = this.registrationForm.get('medicalPhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
       this.errorMessage = 'Medical phone number must be 10 digits';
       this.scrollToFirstInvalid();
       return;
@@ -521,32 +551,65 @@ export class RegistrationComponent implements OnInit {
         this.registrationForm.get('emergencyPhoneNumber')?.value
       )
     ) {
+      const control = this.registrationForm.get('emergencyPhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
       this.errorMessage = 'Emergency contact phone number must be 10 digits';
       this.scrollToFirstInvalid();
       return;
     }
 
     // Validate alternate phone numbers if provided
-    const parentAlternate = this.registrationForm.get(
+    const parentAlternateRaw = this.registrationForm.get(
       'parentAlternatePhoneNumber'
     )?.value;
+    const parentAlternate = parentAlternateRaw
+      ? String(parentAlternateRaw).trim()
+      : '';
     if (
       parentAlternate &&
       !this.validationService.isValidPhoneNumber(parentAlternate)
     ) {
+      const control = this.registrationForm.get('parentAlternatePhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
       this.errorMessage = 'Parent alternate phone number must be 10 digits';
       this.scrollToFirstInvalid();
       return;
     }
 
-    const medicalAlternate = this.registrationForm.get(
+    const medicalAlternateRaw = this.registrationForm.get(
       'medicalAlternatePhoneNumber'
     )?.value;
+    const medicalAlternate = medicalAlternateRaw
+      ? String(medicalAlternateRaw).trim()
+      : '';
     if (
       medicalAlternate &&
       !this.validationService.isValidPhoneNumber(medicalAlternate)
     ) {
+      const control = this.registrationForm.get('medicalAlternatePhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
       this.errorMessage = 'Medical alternate phone number must be 10 digits';
+      this.scrollToFirstInvalid();
+      return;
+    }
+
+    // Final validity gate: ensure form is valid before constructing payload
+    if (!this.registrationForm.valid) {
+      Object.keys(this.registrationForm.controls).forEach((key) => {
+        const ctrl = this.registrationForm.get(key);
+        if (!ctrl) return;
+        if (ctrl.invalid) {
+          ctrl.markAsTouched();
+          ctrl.markAsDirty();
+        }
+      });
+      this.errorMessage = 'Please fill all required fields before submitting';
       this.scrollToFirstInvalid();
       return;
     }
@@ -576,13 +639,13 @@ export class RegistrationComponent implements OnInit {
         email: this.registrationForm.get('parentEmail')?.value,
         phoneType: this.registrationForm.get('parentPhoneType')?.value,
         phoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('parentPhoneNumber')?.value
+          this.registrationForm.get('parentPhoneNumber')?.value || ''
         ),
         alternatePhoneType: this.registrationForm.get(
           'parentAlternatePhoneType'
         )?.value,
         alternatePhoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('parentAlternatePhoneNumber')?.value
+          this.registrationForm.get('parentAlternatePhoneNumber')?.value || ''
         ),
       },
       medicalInfo: {
@@ -600,20 +663,20 @@ export class RegistrationComponent implements OnInit {
         zipCode: this.registrationForm.get('medicalZipCode')?.value,
         phoneType: this.registrationForm.get('medicalPhoneType')?.value,
         phoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('medicalPhoneNumber')?.value
+          this.registrationForm.get('medicalPhoneNumber')?.value || ''
         ),
         alternatePhoneType: this.registrationForm.get(
           'medicalAlternatePhoneType'
         )?.value,
         alternatePhoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('medicalAlternatePhoneNumber')?.value
+          this.registrationForm.get('medicalAlternatePhoneNumber')?.value || ''
         ),
       },
       careFacilityInfo: {
         emergencyContactName: this.registrationForm.get('emergencyContactName')
           ?.value,
         emergencyPhoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('emergencyPhoneNumber')?.value
+          this.registrationForm.get('emergencyPhoneNumber')?.value || ''
         ),
         address1: this.registrationForm.get('careFacilityAddress1')?.value,
         address2: this.registrationForm.get('careFacilityAddress2')?.value,

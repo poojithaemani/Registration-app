@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, retry, shareReplay } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { RegistrationData } from './registration-data.service';
@@ -38,6 +38,13 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
+  private handleError<T>(source: string) {
+    return (error: any): Observable<T> => {
+      console.error(`[${source}] API failed`, error);
+      return throwError(() => error);
+    };
+  }
+
   /**
    * User Authentication Endpoints
    */
@@ -48,7 +55,9 @@ export class ApiService {
    * @returns Observable with login response containing user data and canRegister flag
    */
   login(credentials: { email: string; password: string }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, credentials);
+    return this.http
+      .post(`${this.apiUrl}/login`, credentials)
+      .pipe(retry(1), catchError(this.handleError<any>('Login')));
   }
 
   /**
@@ -61,7 +70,9 @@ export class ApiService {
    * @returns Observable with registration response
    */
   registerStudent(studentData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/registrations`, studentData);
+    return this.http
+      .post(`${this.apiUrl}/registrations`, studentData)
+      .pipe(retry(1), catchError(this.handleError<any>('Register Student')));
   }
 
   /**
@@ -70,7 +81,9 @@ export class ApiService {
    * @returns Observable with student data
    */
   getStudentData(childId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/registrations/${childId}`);
+    return this.http
+      .get(`${this.apiUrl}/registrations/${childId}`)
+      .pipe(retry(1), catchError(this.handleError<any>('Get Student Data')));
   }
 
   /**
@@ -83,20 +96,9 @@ export class ApiService {
     childId: number,
     registrationData: RegistrationData
   ): Observable<any> {
-    return this.http.put(
-      `${this.apiUrl}/registrations/${childId}`,
-      registrationData
-    );
-  }
-
-  updateEnrollment(
-    childId: number,
-    enrollmentProgramDetails: any
-  ): Observable<any> {
-    return this.http.put(
-      `${this.apiUrl}/registrations/${childId}/enrollment`,
-      enrollmentProgramDetails
-    );
+    return this.http
+      .put(`${this.apiUrl}/registrations/${childId}`, registrationData)
+      .pipe(retry(1), catchError(this.handleError<any>('Update Registration')));
   }
 
   /**
@@ -117,7 +119,9 @@ export class ApiService {
    * @returns Observable with student data
    */
   getStudentById(childId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/students/${childId}`);
+    return this.http
+      .get(`${this.apiUrl}/students/${childId}`)
+      .pipe(retry(1), catchError(this.handleError<any>('Get Student By Id')));
   }
 
   /**
@@ -127,7 +131,9 @@ export class ApiService {
    * @returns Observable with update response
    */
   updateStudent(childId: number, studentData: any): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/students/${childId}`, studentData);
+    return this.http
+      .patch(`${this.apiUrl}/students/${childId}`, studentData)
+      .pipe(retry(1), catchError(this.handleError<any>('Update Student')));
   }
 
   /**
@@ -151,8 +157,8 @@ export class ApiService {
         .get<PaymentPlan[]>(`${this.apiUrl}/payment-plans`)
         .pipe(
           retry(1),
-          catchError(() => of([])),
-          shareReplay({ bufferSize: 1, refCount: true })
+          catchError(this.handleError<PaymentPlan[]>('Payment Plans')),
+          shareReplay(1)
         );
     }
     return this.plans$;
@@ -160,11 +166,13 @@ export class ApiService {
 
   getAllPrograms(): Observable<Program[]> {
     if (!this.programs$) {
-      this.programs$ = this.http.get<Program[]>(`${this.apiUrl}/programs`).pipe(
-        retry(1),
-        catchError(() => of([])),
-        shareReplay({ bufferSize: 1, refCount: true })
-      );
+      this.programs$ = this.http
+        .get<Program[]>(`${this.apiUrl}/programs`)
+        .pipe(
+          retry(1),
+          catchError(this.handleError<Program[]>('Programs')),
+          shareReplay(1)
+        );
     }
     return this.programs$;
   }
@@ -175,8 +183,8 @@ export class ApiService {
         .get<RoomType[]>(`${this.apiUrl}/room-types`)
         .pipe(
           retry(1),
-          catchError(() => of([])),
-          shareReplay({ bufferSize: 1, refCount: true })
+          catchError(this.handleError<RoomType[]>('Room Types')),
+          shareReplay(1)
         );
     }
     return this.roomTypes$;
@@ -188,17 +196,23 @@ export class ApiService {
    * @returns Observable with update response
    */
   updatePlan(id: number, data: PaymentPlan): Observable<PaymentPlan> {
-    return this.http.put<PaymentPlan>(
-      `${this.apiUrl}/payment-plans/${id}`,
-      data
-    );
+    return this.http
+      .put<PaymentPlan>(`${this.apiUrl}/payment-plans/${id}`, data)
+      .pipe(retry(1), catchError(this.handleError<PaymentPlan>('Update Plan')));
   }
 
   updateProgram(id: number, data: Program): Observable<Program> {
-    return this.http.put<Program>(`${this.apiUrl}/programs/${id}`, data);
+    return this.http
+      .put<Program>(`${this.apiUrl}/programs/${id}`, data)
+      .pipe(retry(1), catchError(this.handleError<Program>('Update Program')));
   }
 
   updateRoomType(id: number, data: RoomType): Observable<RoomType> {
-    return this.http.put<RoomType>(`${this.apiUrl}/room-types/${id}`, data);
+    return this.http
+      .put<RoomType>(`${this.apiUrl}/room-types/${id}`, data)
+      .pipe(
+        retry(1),
+        catchError(this.handleError<RoomType>('Update Room Type'))
+      );
   }
 }

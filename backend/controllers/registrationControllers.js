@@ -95,8 +95,8 @@ export const createRegistration = async (req, res) => {
       `
       INSERT INTO medicalcontacts
       (childid, physicianname, middlename, lastname, addressline1, addressline2,
-       city, state, country, zipcode, phonetype, phonenumber, countrycode)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       city, state, country, zipcode, phonetype, phonenumber, alternatephonetype, alternatenumber, countrycode)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       `,
       [
         childId,
@@ -111,6 +111,8 @@ export const createRegistration = async (req, res) => {
         medicalInfo.zipCode,
         medicalInfo.phoneType,
         medicalInfo.phoneNumber,
+        medicalInfo.alternatePhoneType || null,
+        medicalInfo.alternatePhoneNumber || null,
         "+1",
       ]
     );
@@ -287,6 +289,8 @@ export const getRegistrationByChildId = async (req, res) => {
         m.zipcode AS medicalZipCode,
         m.phonetype AS medicalPhoneType,
         m.phonenumber AS medicalPhoneNumber,
+        m.alternatephonetype AS medicalAlternatePhoneType,
+        m.alternatenumber AS medicalAlternatePhoneNumber,
         cf.facilityid,
         cf.emergencycontactname,
         cf.emergencyphonenumber,
@@ -354,6 +358,8 @@ export const getRegistrationByChildId = async (req, res) => {
         zipCode: row.medicalzipcode,
         phoneType: row.medicalphonetype,
         phoneNumber: row.medicalphonenumber,
+        alternatePhoneType: row.medicalalternatephonetype,
+        alternatePhoneNumber: row.medicalalternatephonenumber,
       },
       careFacilityInfo: {
         facilityId: row.facilityid,
@@ -483,8 +489,8 @@ export const updateRegistration = async (req, res) => {
         `
         UPDATE medicalcontacts
         SET physicianname=$1, middlename=$2, lastname=$3, addressline1=$4, addressline2=$5, city=$6, state=$7, country=$8,
-            zipcode=$9, phonetype=$10, phonenumber=$11
-        WHERE childid=$12
+            zipcode=$9, phonetype=$10, phonenumber=$11, alternatephonetype=$12, alternatenumber=$13
+        WHERE childid=$14
         `,
         [
           medicalInfo.physicianFirstName || null,
@@ -498,6 +504,8 @@ export const updateRegistration = async (req, res) => {
           medicalInfo.zipCode,
           medicalInfo.phoneType,
           medicalInfo.phoneNumber,
+          medicalInfo.alternatePhoneType || null,
+          medicalInfo.alternatePhoneNumber || null,
           childId,
         ]
       );
@@ -554,11 +562,9 @@ export const updateRegistration = async (req, res) => {
 
       if (!planRes.rows.length) {
         await client.query("ROLLBACK");
-        return res
-          .status(400)
-          .json({
-            error: "No enrollment plan found for selected program & room",
-          });
+        return res.status(400).json({
+          error: "No enrollment plan found for selected program & room",
+        });
       }
 
       const paymentRes = await client.query(
@@ -604,97 +610,6 @@ export const updateRegistration = async (req, res) => {
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("❌ Update registration failed:", err.message);
-    res.status(500).json({ error: err.message, detail: err.detail });
-  } finally {
-    client.release();
-  }
-};
-
-/**
- * UPDATE ENROLLMENT - Update a child's enrollment program details
- */
-export const updateEnrollment = async (req, res) => {
-  const { childId } = req.params;
-  const { enrollmentProgramDetails } = req.body;
-
-  if (!enrollmentProgramDetails) {
-    return res.status(400).json({ error: "Missing enrollmentProgramDetails" });
-  }
-
-  const { programType, roomType, planType, status } = enrollmentProgramDetails;
-
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
-
-    // Validate program and room
-    const programRes = await client.query(
-      `SELECT programid FROM programs WHERE programid = $1`,
-      [programType]
-    );
-    const roomRes = await client.query(
-      `SELECT roomtypeid FROM roomtypes WHERE roomtypeid = $1`,
-      [roomType]
-    );
-
-    if (!programRes.rows.length || !roomRes.rows.length) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({ error: "Invalid program or room type" });
-    }
-
-    const planRes = await client.query(
-      `SELECT enrollmentplanid FROM enrollmentplans WHERE programid = $1 AND roomtypeid = $2`,
-      [programRes.rows[0].programid, roomRes.rows[0].roomtypeid]
-    );
-
-    if (!planRes.rows.length) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({
-        error: "No enrollment plan found for selected program & room",
-      });
-    }
-
-    const paymentRes = await client.query(
-      `SELECT paymentplanid FROM paymentplan WHERE paymentplanid = $1`,
-      [planType]
-    );
-    if (!paymentRes.rows.length) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({ error: "Invalid payment plan type" });
-    }
-
-    // Check if registration exists
-    const regRes = await client.query(
-      `SELECT registrationid FROM registrations WHERE childid = $1`,
-      [childId]
-    );
-    if (regRes.rows.length) {
-      await client.query(
-        `UPDATE registrations SET enrollmentplanid=$1, paymentplanid=$2, status=$3 WHERE childid=$4`,
-        [
-          planRes.rows[0].enrollmentplanid,
-          paymentRes.rows[0].paymentplanid,
-          status || "Pending Approval",
-          childId,
-        ]
-      );
-    } else {
-      await client.query(
-        `INSERT INTO registrations (childid, enrollmentplanid, status, paymentplanid, amount) VALUES ($1,$2,$3,$4,0)`,
-        [
-          childId,
-          planRes.rows[0].enrollmentplanid,
-          status || "Pending Approval",
-          paymentRes.rows[0].paymentplanid,
-        ]
-      );
-    }
-
-    await client.query("COMMIT");
-    res.json({ success: true, message: "Enrollment updated successfully" });
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("❌ Update enrollment failed:", err.message);
     res.status(500).json({ error: err.message, detail: err.detail });
   } finally {
     client.release();

@@ -114,8 +114,8 @@ export const updateStudent = async (req, res) => {
         UPDATE medicalcontacts
         SET physicianname = $1, middlename = $2, lastname = $3, addressline1 = $4, addressline2 = $5,
             city = $6, state = $7, country = $8, zipcode = $9,
-            phonetype = $10, phonenumber = $11, countrycode = $12
-        WHERE childid = $13
+            phonetype = $10, phonenumber = $11, alternatephonetype = $12, alternatenumber = $13, countrycode = $14
+        WHERE childid = $15
         `,
         [
           first,
@@ -129,6 +129,8 @@ export const updateStudent = async (req, res) => {
           medicalInfo.zipCode || null,
           medicalInfo.phoneType || null,
           medicalInfo.phoneNumber || null,
+          medicalInfo.alternatePhoneType || null,
+          medicalInfo.alternatePhoneNumber || null,
           medicalInfo.countryCode || "+1",
           childId,
         ]
@@ -234,7 +236,9 @@ export const getAllStudents = async (req, res) => {
         m.zipcode AS medicalZipCode,
         m.countrycode AS medicalCountryCode,
         m.phonetype AS medicalPhoneType,
-        m.phonenumber AS medicalPhoneNumber,
+          m.phonenumber AS medicalPhoneNumber,
+          m.alternatephonetype AS medicalAlternatePhoneType,
+          m.alternatenumber AS medicalAlternatePhoneNumber,
         
         -- Care Facility Information
         cf.facilityid,
@@ -342,6 +346,8 @@ export const getAllStudents = async (req, res) => {
             countryCode: row.medicalcountrycode,
             phoneType: row.medicalphonetype,
             phoneNumber: row.medicalphonenumber,
+            alternatePhoneType: row.medicalalternatephonetype,
+            alternatePhoneNumber: row.medicalalternatephonenumber,
           },
           careFacilityInfo: {
             facilityId: row.facilityid,
@@ -442,6 +448,8 @@ export const getStudentById = async (req, res) => {
         m.countrycode AS medicalCountryCode,
         m.phonetype AS medicalPhoneType,
         m.phonenumber AS medicalPhoneNumber,
+        m.alternatephonetype AS medicalAlternatePhoneType,
+        m.alternatenumber AS medicalAlternatePhoneNumber,
         
         -- Care Facility Information
         cf.facilityid,
@@ -540,6 +548,8 @@ export const getStudentById = async (req, res) => {
         countryCode: row.medicalcountrycode,
         phoneType: row.medicalphonetype,
         phoneNumber: row.medicalphonenumber,
+        alternatePhoneType: row.medicalalternatephonetype,
+        alternatePhoneNumber: row.medicalalternatephonenumber,
       },
       careFacilityInfo: {
         facilityId: row.facilityid,
