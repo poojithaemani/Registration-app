@@ -493,7 +493,14 @@
               (input)="formatPhoneInput($event, 'parentAlternatePhoneNumber')"
               (keypress)="validationService.keyPressNumbers($event, 10)"
               [readonly]="!isEditMode"
+              [class.is-invalid]="isFieldInvalid('parentAlternatePhoneNumber')"
             />
+            <div
+              *ngIf="isFieldInvalid('parentAlternatePhoneNumber')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("parentAlternatePhoneNumber") }}
+            </div>
           </div>
         </div>
       </div>
@@ -770,7 +777,14 @@
               (input)="formatPhoneInput($event, 'medicalAlternatePhoneNumber')"
               (keypress)="validationService.keyPressNumbers($event, 10)"
               [readonly]="!isEditMode"
+              [class.is-invalid]="isFieldInvalid('medicalAlternatePhoneNumber')"
             />
+            <div
+              *ngIf="isFieldInvalid('medicalAlternatePhoneNumber')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("medicalAlternatePhoneNumber") }}
+            </div>
           </div>
         </div>
       </div>
@@ -989,11 +1003,15 @@
       <div class="form-section">
         <h2 class="section-title">Enrollment Program Details</h2>
         <div class="form-row">
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('programType') }"
+          >
             <label>Program Type</label>
             <select
               formControlName="programType"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('programType')"
               [disabled]="!isEditMode || programTypeOptions.length === 0"
             >
               <option value="">
@@ -1008,12 +1026,19 @@
                 {{ formatDropdownText(p.programname) }}
               </option>
             </select>
+            <div *ngIf="isFieldInvalid('programType')" class="error-message">
+              {{ getFieldErrorMessage("programType") }}
+            </div>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('roomType') }"
+          >
             <label>Room Type</label>
             <select
               formControlName="roomType"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('roomType')"
               [disabled]="!isEditMode || roomTypeOptions.length === 0"
             >
               <option value="">
@@ -1023,12 +1048,19 @@
                 {{ formatDropdownText(r.roomtype) }}
               </option>
             </select>
+            <div *ngIf="isFieldInvalid('roomType')" class="error-message">
+              {{ getFieldErrorMessage("roomType") }}
+            </div>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('planType') }"
+          >
             <label>Plan Type</label>
             <select
               formControlName="planType"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('planType')"
               [disabled]="!isEditMode || planTypeOptions.length === 0"
             >
               <option value="">
@@ -1041,15 +1073,25 @@
                 {{ formatDropdownText(s.plantype) }}
               </option>
             </select>
+            <div *ngIf="isFieldInvalid('planType')" class="error-message">
+              {{ getFieldErrorMessage("planType") }}
+            </div>
           </div>
-          <div class="form-group">
+          <div
+            class="form-group"
+            [ngClass]="{ highlighted: isHighlighted('enrollmentDate') }"
+          >
             <label>Enrollment Date</label>
             <input
               type="date"
               formControlName="enrollmentDate"
               class="form-control"
-              [disabled]="!isEditMode"
+              [class.is-invalid]="isFieldInvalid('enrollmentDate')"
+              [disabled]="true"
             />
+            <div *ngIf="isFieldInvalid('enrollmentDate')" class="error-message">
+              {{ getFieldErrorMessage("enrollmentDate") }}
+            </div>
           </div>
         </div>
       </div>

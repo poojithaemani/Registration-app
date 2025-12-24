@@ -340,7 +340,7 @@
                 type="text"
                 formControlName="parentPhoneNumber"
                 class="form-control"
-                placeholder="555-555-5555"
+                placeholder="(555)-555-5555"
                 maxlength="10"
                 (input)="formatPhoneInput($event, 'parentPhoneNumber')"
                 [class.is-invalid]="isFieldInvalid('parentPhoneNumber')"
@@ -382,7 +382,14 @@
               placeholder="(555) 555-5555"
               maxlength="14"
               (keypress)="validationService.keyPressNumbers($event, 10)"
+              [class.is-invalid]="isFieldInvalid('parentAlternatePhoneNumber')"
             />
+            <div
+              *ngIf="isFieldInvalid('parentAlternatePhoneNumber')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("parentAlternatePhoneNumber") }}
+            </div>
           </div>
         </div>
       </div>
@@ -618,7 +625,14 @@
               placeholder="(555) 555-5555"
               maxlength="14"
               (keypress)="validationService.keyPressNumbers($event, 10)"
+              [class.is-invalid]="isFieldInvalid('medicalAlternatePhoneNumber')"
             />
+            <div
+              *ngIf="isFieldInvalid('medicalAlternatePhoneNumber')"
+              class="error-message"
+            >
+              {{ getFieldErrorMessage("medicalAlternatePhoneNumber") }}
+            </div>
           </div>
         </div>
       </div>
@@ -893,6 +907,7 @@
               class="form-control"
               [min]="todayDate.toISOString().split('T')[0]"
               [class.is-invalid]="isFieldInvalid('enrollmentDate')"
+              [disabled]="true"
             />
             <div *ngIf="isFieldInvalid('enrollmentDate')" class="error-message">
               Enrollment date is required (no past dates allowed)

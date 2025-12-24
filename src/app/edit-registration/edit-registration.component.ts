@@ -518,7 +518,6 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       'programType',
       'roomType',
       'planType',
-      'enrollmentDate',
     ];
 
     fieldsToEnable.forEach((fieldName) => {
@@ -800,33 +799,140 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Validate phone numbers
+    // Validate phone numbers and set per-control errors so templates show inline messages
+    let phonesValid = true;
+
+    const parentPhoneCtrl = this.registrationForm.get('parentPhoneNumber');
     if (
-      !this.validationService.isValidPhoneNumber(
-        this.registrationForm.get('parentPhoneNumber')?.value
-      )
+      parentPhoneCtrl &&
+      !this.validationService.isValidPhoneNumber(parentPhoneCtrl.value)
     ) {
-      this.errorMessage = 'Parent phone number must be 10 digits';
+      const current = parentPhoneCtrl.errors
+        ? { ...parentPhoneCtrl.errors }
+        : {};
+      current['invalidPhone'] = true;
+      parentPhoneCtrl.setErrors(current);
+      parentPhoneCtrl.markAsTouched();
+      parentPhoneCtrl.markAsDirty();
+      phonesValid = false;
+    }
+
+    const medicalPhoneCtrl = this.registrationForm.get('medicalPhoneNumber');
+    if (
+      medicalPhoneCtrl &&
+      !this.validationService.isValidPhoneNumber(medicalPhoneCtrl.value)
+    ) {
+      const current = medicalPhoneCtrl.errors
+        ? { ...medicalPhoneCtrl.errors }
+        : {};
+      current['invalidPhone'] = true;
+      medicalPhoneCtrl.setErrors(current);
+      medicalPhoneCtrl.markAsTouched();
+      medicalPhoneCtrl.markAsDirty();
+      phonesValid = false;
+    }
+
+    const emergencyPhoneCtrl = this.registrationForm.get(
+      'emergencyPhoneNumber'
+    );
+    if (
+      emergencyPhoneCtrl &&
+      !this.validationService.isValidPhoneNumber(emergencyPhoneCtrl.value)
+    ) {
+      const current = emergencyPhoneCtrl.errors
+        ? { ...emergencyPhoneCtrl.errors }
+        : {};
+      current['invalidPhone'] = true;
+      emergencyPhoneCtrl.setErrors(current);
+      emergencyPhoneCtrl.markAsTouched();
+      emergencyPhoneCtrl.markAsDirty();
+      phonesValid = false;
+    }
+
+    // Validate alternate phone numbers only when provided (trim whitespace first)
+    const parentAlternateRaw = this.registrationForm.get(
+      'parentAlternatePhoneNumber'
+    )?.value;
+    const parentAlternate = parentAlternateRaw
+      ? String(parentAlternateRaw).trim()
+      : '';
+    const parentAltCtrl = this.registrationForm.get(
+      'parentAlternatePhoneNumber'
+    );
+    if (parentAlternate) {
+      if (!this.validationService.isValidPhoneNumber(parentAlternate)) {
+        const current = parentAltCtrl?.errors
+          ? { ...parentAltCtrl.errors }
+          : {};
+        if (parentAltCtrl) {
+          current['invalidPhone'] = true;
+          parentAltCtrl.setErrors(current);
+          parentAltCtrl.markAsTouched();
+          parentAltCtrl.markAsDirty();
+        }
+        phonesValid = false;
+      }
+    } else if (
+      parentAltCtrl &&
+      parentAltCtrl.errors &&
+      parentAltCtrl.errors['invalidPhone']
+    ) {
+      // clear invalidPhone if previously set and now empty
+      const errs = { ...parentAltCtrl.errors };
+      delete errs['invalidPhone'];
+      parentAltCtrl.setErrors(Object.keys(errs).length ? errs : null);
+    }
+
+    const medicalAlternateRaw = this.registrationForm.get(
+      'medicalAlternatePhoneNumber'
+    )?.value;
+    const medicalAlternate = medicalAlternateRaw
+      ? String(medicalAlternateRaw).trim()
+      : '';
+    const medicalAltCtrl = this.registrationForm.get(
+      'medicalAlternatePhoneNumber'
+    );
+    if (medicalAlternate) {
+      if (!this.validationService.isValidPhoneNumber(medicalAlternate)) {
+        const current = medicalAltCtrl?.errors
+          ? { ...medicalAltCtrl.errors }
+          : {};
+        if (medicalAltCtrl) {
+          current['invalidPhone'] = true;
+          medicalAltCtrl.setErrors(current);
+          medicalAltCtrl.markAsTouched();
+          medicalAltCtrl.markAsDirty();
+        }
+        phonesValid = false;
+      }
+    } else if (
+      medicalAltCtrl &&
+      medicalAltCtrl.errors &&
+      medicalAltCtrl.errors['invalidPhone']
+    ) {
+      const errs = { ...medicalAltCtrl.errors };
+      delete errs['invalidPhone'];
+      medicalAltCtrl.setErrors(Object.keys(errs).length ? errs : null);
+    }
+
+    if (!phonesValid) {
+      this.errorMessage = 'Please correct invalid phone numbers';
       this.scrollToFirstInvalid();
       return;
     }
 
-    if (
-      !this.validationService.isValidPhoneNumber(
-        this.registrationForm.get('medicalPhoneNumber')?.value
-      )
-    ) {
-      this.errorMessage = 'Medical phone number must be 10 digits';
-      this.scrollToFirstInvalid();
-      return;
-    }
-
-    if (
-      !this.validationService.isValidPhoneNumber(
-        this.registrationForm.get('emergencyPhoneNumber')?.value
-      )
-    ) {
-      this.errorMessage = 'Emergency contact phone number must be 10 digits';
+    // Final validity gate: ensure the entire form is valid before saving
+    if (!this.registrationForm.valid) {
+      Object.keys(this.registrationForm.controls).forEach((key) => {
+        const ctrl = this.registrationForm.get(key);
+        if (!ctrl) return;
+        if (ctrl.invalid) {
+          ctrl.markAsTouched();
+          ctrl.markAsDirty();
+        }
+      });
+      this.errorMessage =
+        'Please fill the required fields before saving changes';
       this.scrollToFirstInvalid();
       return;
     }
@@ -856,13 +962,13 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         email: this.registrationForm.get('parentEmail')?.value,
         phoneType: this.registrationForm.get('parentPhoneType')?.value,
         phoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('parentPhoneNumber')?.value
+          this.registrationForm.get('parentPhoneNumber')?.value || ''
         ),
         alternatePhoneType: this.registrationForm.get(
           'parentAlternatePhoneType'
         )?.value,
         alternatePhoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('parentAlternatePhoneNumber')?.value
+          this.registrationForm.get('parentAlternatePhoneNumber')?.value || ''
         ),
       };
 
@@ -881,13 +987,13 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         zipCode: this.registrationForm.get('medicalZipCode')?.value,
         phoneType: this.registrationForm.get('medicalPhoneType')?.value,
         phoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('medicalPhoneNumber')?.value
+          this.registrationForm.get('medicalPhoneNumber')?.value || ''
         ),
         alternatePhoneType: this.registrationForm.get(
           'medicalAlternatePhoneType'
         )?.value,
         alternatePhoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('medicalAlternatePhoneNumber')?.value
+          this.registrationForm.get('medicalAlternatePhoneNumber')?.value || ''
         ),
       };
 
@@ -895,7 +1001,7 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         emergencyContactName: this.registrationForm.get('emergencyContactName')
           ?.value,
         emergencyPhoneNumber: this.formatPhoneNumber(
-          this.registrationForm.get('emergencyPhoneNumber')?.value
+          this.registrationForm.get('emergencyPhoneNumber')?.value || ''
         ),
         address1: this.registrationForm.get('careFacilityAddress1')?.value,
         address2: this.registrationForm.get('careFacilityAddress2')?.value,
@@ -929,41 +1035,98 @@ export class EditRegistrationComponent implements OnInit, OnDestroy {
         enrollmentDate: this.registrationForm.get('enrollmentDate')?.value,
       };
 
-      // send registration + enrollment together so backend can commit atomically
-      const payload = {
-        childInfo: this.registrationForm ? undefined : undefined,
-        parentGuardianInfo: this.registrationForm ? undefined : undefined,
-        medicalInfo: this.registrationForm ? undefined : undefined,
-        careFacilityInfo: this.registrationForm ? undefined : undefined,
-      };
-
-      // Use existing registrationData object and attach enrollmentProgramDetails
-      const base = registrationData || {};
+      // Build payload from current form values so edits are saved
+      const formValue = this.registrationForm.getRawValue();
       const combined = {
-        ...base,
+        childInfo: {
+          firstName: formValue.childFirstName,
+          middleName: formValue.childMiddleName,
+          lastName: formValue.childLastName,
+          gender: formValue.gender,
+          dateOfBirth: formValue.dateOfBirth,
+          placeOfBirth: formValue.placeOfBirth,
+        },
+        parentGuardianInfo: {
+          firstName: formValue.parentFirstName,
+          middleName: formValue.parentMiddleName,
+          lastName: formValue.parentLastName,
+          relationship: formValue.relationship,
+          address1: formValue.parentAddress1,
+          address2: formValue.parentAddress2,
+          country: formValue.parentCountry,
+          state: formValue.parentState,
+          city: formValue.parentCity,
+          zipCode: formValue.parentZipCode,
+          email: formValue.parentEmail,
+          phoneType: formValue.parentPhoneType,
+          phoneNumber: this.formatPhoneNumber(
+            formValue.parentPhoneNumber || ''
+          ),
+          alternatePhoneType: formValue.parentAlternatePhoneType,
+          alternatePhoneNumber: this.formatPhoneNumber(
+            formValue.parentAlternatePhoneNumber || ''
+          ),
+        },
+        medicalInfo: {
+          physicianFirstName: formValue.physicianFirstName,
+          physicianMiddleName: formValue.physicianMiddleName,
+          physicianLastName: formValue.physicianLastName,
+          address1: formValue.medicalAddress1,
+          address2: formValue.medicalAddress2,
+          country: formValue.medicalCountry,
+          state: formValue.medicalState,
+          city: formValue.medicalCity,
+          zipCode: formValue.medicalZipCode,
+          phoneType: formValue.medicalPhoneType,
+          phoneNumber: this.formatPhoneNumber(
+            formValue.medicalPhoneNumber || ''
+          ),
+          alternatePhoneType: formValue.medicalAlternatePhoneType,
+          alternatePhoneNumber: this.formatPhoneNumber(
+            formValue.medicalAlternatePhoneNumber || ''
+          ),
+        },
+        careFacilityInfo: {
+          emergencyContactName: formValue.emergencyContactName,
+          address1: formValue.careFacilityAddress1,
+          address2: formValue.careFacilityAddress2,
+          country: formValue.careFacilityCountry,
+          state: formValue.careFacilityState,
+          city: formValue.careFacilityCity,
+          zipCode: formValue.careFacilityZipCode,
+          phoneType: formValue.careFacilityPhoneType,
+          emergencyPhoneNumber: this.formatPhoneNumber(
+            formValue.emergencyPhoneNumber || ''
+          ),
+        },
         enrollmentProgramDetails,
       } as RegistrationData;
 
-      this.apiService.updateRegistration(childId, combined).subscribe({
-        next: () => {
-          this.registrationDataService.saveRegistrationData(registrationData);
-          this.notificationService.success('Saved Changes Successfully!');
-          this.successMessage = 'Saved Changes Successfully!';
-          this.originalFormData = this.registrationForm.getRawValue();
-          this.isSaving = false;
-          setTimeout(() => {
-            this.disableEditMode();
-            this.successMessage = '';
-          }, 2000);
-        },
-        error: (error: any) => {
-          console.error('Update registration failed:', error);
-          this.isSaving = false;
-          this.errorMessage = 'Failed to save changes. Please try again later.';
-          this.notificationService.error('Failed to save changes');
-          this.scrollToFirstInvalid();
-        },
-      });
+      console.log('Updating registration with payload:', combined);
+      this.apiService
+        .updateRegistration(childId, combined)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.registrationDataService.saveRegistrationData(combined);
+            this.notificationService.success('Saved Changes Successfully!');
+            this.successMessage = 'Saved Changes Successfully!';
+            this.originalFormData = this.registrationForm.getRawValue();
+            this.isSaving = false;
+            setTimeout(() => {
+              this.disableEditMode();
+              this.successMessage = '';
+            }, 2000);
+          },
+          error: (error: any) => {
+            console.error('Update registration failed:', error);
+            this.isSaving = false;
+            this.errorMessage =
+              'Failed to save changes. Please try again later.';
+            this.notificationService.error('Failed to save changes');
+            this.scrollToFirstInvalid();
+          },
+        });
     }
   }
 

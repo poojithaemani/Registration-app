@@ -10,7 +10,8 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../services/api.service';
 import { ValidationService } from '../services/validation.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from '../services/notification.service';
 import { USStatesService } from '../services/us-states.service';
 
@@ -19,9 +20,10 @@ import { USStatesService } from '../services/us-states.service';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './view-students.component.html',
-  styleUrl: './view-students.component.css',
+  styleUrls: ['./view-students.component.css'],
 })
 export class ViewStudentsComponent implements OnInit {
+  private destroy$ = new Subject<void>();
   student: any = null;
   isEditMode: boolean = false;
   isLoading: boolean = false;
@@ -57,28 +59,30 @@ export class ViewStudentsComponent implements OnInit {
       programs: this.apiService.getAllPrograms(),
       roomTypes: this.apiService.getAllRoomTypes(),
       plans: this.apiService.getAllPlans(),
-    }).subscribe({
-      next: (res: any) => {
-        this.programTypeOptions = this.filterExcludedOptions(
-          res.programs || [],
-          'programname'
-        );
-        this.roomTypeOptions = this.filterExcludedOptions(
-          res.roomTypes || [],
-          'roomtype'
-        );
-        this.planTypeOptions = this.filterExcludedOptions(
-          res.plans || [],
-          'plantype'
-        );
-        this.initializeForm();
-        this.loadStudentDetails();
-      },
-      error: () => {
-        this.initializeForm();
-        this.loadStudentDetails();
-      },
-    });
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.programTypeOptions = this.filterExcludedOptions(
+            res.programs || [],
+            'programname'
+          );
+          this.roomTypeOptions = this.filterExcludedOptions(
+            res.roomTypes || [],
+            'roomtype'
+          );
+          this.planTypeOptions = this.filterExcludedOptions(
+            res.plans || [],
+            'plantype'
+          );
+          this.initializeForm();
+          this.loadStudentDetails();
+        },
+        error: () => {
+          this.initializeForm();
+          this.loadStudentDetails();
+        },
+      });
   }
 
   filterExcludedOptions(list: any[], field: string): any[] {
@@ -153,8 +157,14 @@ export class ViewStudentsComponent implements OnInit {
         { value: '', disabled: true },
         [Validators.required, this.validationService.addressValidator()],
       ],
-      parentAddress2: [{ value: '', disabled: true }],
-      parentCity: [{ value: '', disabled: true }, Validators.required],
+      parentAddress2: [
+        { value: '', disabled: true },
+        this.validationService.addressValidator(),
+      ],
+      parentCity: [
+        { value: '', disabled: true },
+        [Validators.required, this.validationService.cityValidator()],
+      ],
       parentState: [{ value: '', disabled: true }, Validators.required],
       parentCountry: [{ value: '', disabled: true }, Validators.required],
       parentZipCode: [
@@ -186,9 +196,18 @@ export class ViewStudentsComponent implements OnInit {
         { value: '', disabled: true },
         [Validators.required, this.validationService.nameValidator()],
       ],
-      medicalAddress1: [{ value: '', disabled: true }, Validators.required],
-      medicalAddress2: [{ value: '', disabled: true }],
-      medicalCity: [{ value: '', disabled: true }, Validators.required],
+      medicalAddress1: [
+        { value: '', disabled: true },
+        [Validators.required, this.validationService.addressValidator()],
+      ],
+      medicalAddress2: [
+        { value: '', disabled: true },
+        this.validationService.addressValidator(),
+      ],
+      medicalCity: [
+        { value: '', disabled: true },
+        [Validators.required, this.validationService.cityValidator()],
+      ],
       medicalState: [{ value: '', disabled: true }, Validators.required],
       medicalCountry: [{ value: '', disabled: true }, Validators.required],
       medicalZipCode: [
@@ -199,6 +218,11 @@ export class ViewStudentsComponent implements OnInit {
       medicalPhoneNumber: [
         { value: '', disabled: true },
         [Validators.required, this.validationService.phoneValidator()],
+      ],
+      medicalAlternatePhoneType: [{ value: '', disabled: true }],
+      medicalAlternatePhoneNumber: [
+        { value: '', disabled: true },
+        this.validationService.phoneValidator(),
       ],
 
       // Care Facility
@@ -212,10 +236,16 @@ export class ViewStudentsComponent implements OnInit {
       ],
       careFacilityAddress1: [
         { value: '', disabled: true },
-        Validators.required,
+        [Validators.required, this.validationService.addressValidator()],
       ],
-      careFacilityAddress2: [{ value: '', disabled: true }],
-      careFacilityCity: [{ value: '', disabled: true }, Validators.required],
+      careFacilityAddress2: [
+        { value: '', disabled: true },
+        this.validationService.addressValidator(),
+      ],
+      careFacilityCity: [
+        { value: '', disabled: true },
+        [Validators.required, this.validationService.cityValidator()],
+      ],
       careFacilityState: [{ value: '', disabled: true }, Validators.required],
       careFacilityCountry: [{ value: '', disabled: true }, Validators.required],
       careFacilityZipCode: [
@@ -247,21 +277,24 @@ export class ViewStudentsComponent implements OnInit {
 
     const childId = this.route.snapshot.paramMap.get('childId');
 
-    this.apiService.getStudentById(Number(childId)).subscribe({
-      next: (response: any) => {
-        if (response.success) {
-          this.student = response.data;
-          this.populateForm();
+    this.apiService
+      .getStudentById(Number(childId))
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            this.student = response.data;
+            this.populateForm();
+            this.isLoading = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error loading student:', error);
+          this.error = 'Failed to load student details. Please try again.';
           this.isLoading = false;
-        }
-      },
-      error: (error) => {
-        console.error('Error loading student:', error);
-        this.error = 'Failed to load student details. Please try again.';
-        this.isLoading = false;
-        this.notificationService.error('Failed to load student details');
-      },
-    });
+          this.notificationService.error('Failed to load student details');
+        },
+      });
   }
 
   /**
@@ -308,6 +341,10 @@ export class ViewStudentsComponent implements OnInit {
       medicalZipCode: this.student.medicalInfo?.zipCode || '',
       medicalPhoneType: this.student.medicalInfo?.phoneType || '',
       medicalPhoneNumber: this.student.medicalInfo?.phoneNumber || '',
+      medicalAlternatePhoneType:
+        this.student.medicalInfo?.alternatePhoneType || '',
+      medicalAlternatePhoneNumber:
+        this.student.medicalInfo?.alternatePhoneNumber || '',
 
       emergencyContactName:
         this.student.careFacilityInfo?.emergencyContactName || '',
@@ -355,12 +392,22 @@ export class ViewStudentsComponent implements OnInit {
       'paymentPlanId',
       'enrollmentAmount',
     ]);
-
-    Object.keys(this.studentForm.controls).forEach((key) => {
-      if (!key.startsWith('enrollment') && !keepDisabled.has(key)) {
-        this.studentForm.get(key)?.enable();
-      }
-    });
+    // enable controls after current tick to avoid change-detection errors
+    console.log('enableEditMode: about to enable controls');
+    setTimeout(() => {
+      Object.keys(this.studentForm.controls).forEach((key) => {
+        if (!key.startsWith('enrollment') && !keepDisabled.has(key)) {
+          this.studentForm.get(key)?.enable();
+        }
+      });
+      console.log(
+        'enableEditMode: controls enabled state:',
+        Object.keys(this.studentForm.controls).reduce((acc: any, k) => {
+          acc[k] = this.studentForm.get(k)?.disabled;
+          return acc;
+        }, {})
+      );
+    }, 0);
   }
 
   /**
@@ -369,21 +416,163 @@ export class ViewStudentsComponent implements OnInit {
   cancelEdit(): void {
     this.isEditMode = false;
     this.populateForm();
-    // Disable all form controls
-    Object.keys(this.studentForm.controls).forEach((key) => {
-      this.studentForm.get(key)?.disable();
-    });
+    // Disable all form controls on next tick to avoid change-detection errors
+    setTimeout(() => {
+      Object.keys(this.studentForm.controls).forEach((key) => {
+        this.studentForm.get(key)?.disable();
+      });
+      console.log(
+        'cancelEdit: controls disabled state:',
+        Object.keys(this.studentForm.controls).reduce((acc: any, k) => {
+          acc[k] = this.studentForm.get(k)?.disabled;
+          return acc;
+        }, {})
+      );
+    }, 0);
   }
 
   /**
    * Save changes
    */
   saveChanges(): void {
-    // Trim whitespace from all string controls before validating
+    // Trim whitespace and mark required fields/touched so field-level errors display
     this.trimAllStringControls();
 
-    if (!this.studentForm.valid) {
-      this.notificationService.error('Please fill all required fields to ed');
+    const requiredFields = [
+      'childFirstName',
+      'childLastName',
+      'gender',
+      'dateOfBirth',
+      'placeOfBirth',
+      'parentFirstName',
+      'parentLastName',
+      'parentEmail',
+      'parentAddress1',
+      'parentCity',
+      'parentState',
+      'parentZipCode',
+      'parentPhoneType',
+      'parentPhoneNumber',
+      'physicianFirstName',
+      'physicianLastName',
+      'medicalAddress1',
+      'medicalCity',
+      'medicalState',
+      'medicalZipCode',
+      'medicalPhoneType',
+      'medicalPhoneNumber',
+      'emergencyContactName',
+      'careFacilityAddress1',
+      'careFacilityCity',
+      'careFacilityState',
+      'careFacilityZipCode',
+      'careFacilityPhoneType',
+      'emergencyPhoneNumber',
+    ];
+
+    let allFieldsValid = true;
+    for (const field of requiredFields) {
+      const control = this.studentForm.get(field);
+      const val = control?.value;
+      if (!control || this.validationService.isFieldEmpty(val)) {
+        allFieldsValid = false;
+        if (control) {
+          const currentErrors = control.errors ? { ...control.errors } : {};
+          if (
+            typeof val === 'string' &&
+            val.length > 0 &&
+            val.trim().length === 0
+          ) {
+            currentErrors['onlySpaces'] = true;
+          } else {
+            currentErrors['required'] = true;
+          }
+          control.setErrors(currentErrors);
+          control.markAsTouched();
+        }
+      }
+    }
+
+    if (!allFieldsValid) {
+      this.notificationService.error('Please fill all required fields');
+      this.scrollToFirstInvalid();
+      return;
+    }
+
+    // Validate phone numbers
+    if (
+      !this.validationService.isValidPhoneNumber(
+        this.studentForm.get('parentPhoneNumber')?.value
+      )
+    ) {
+      const control = this.studentForm.get('parentPhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
+      this.notificationService.error('Parent phone number must be 10 digits');
+      this.scrollToFirstInvalid();
+      return;
+    }
+
+    if (
+      !this.validationService.isValidPhoneNumber(
+        this.studentForm.get('medicalPhoneNumber')?.value
+      )
+    ) {
+      const control = this.studentForm.get('medicalPhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
+      this.notificationService.error('Medical phone number must be 10 digits');
+      this.scrollToFirstInvalid();
+      return;
+    }
+
+    if (
+      !this.validationService.isValidPhoneNumber(
+        this.studentForm.get('emergencyPhoneNumber')?.value
+      )
+    ) {
+      const control = this.studentForm.get('emergencyPhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
+      this.notificationService.error(
+        'Emergency contact phone number must be 10 digits'
+      );
+      this.scrollToFirstInvalid();
+      return;
+    }
+
+    // Validate alternate phones if provided
+    const parentAltRaw = this.studentForm.get(
+      'parentAlternatePhoneNumber'
+    )?.value;
+    const parentAlt = parentAltRaw ? String(parentAltRaw).trim() : '';
+    if (parentAlt && !this.validationService.isValidPhoneNumber(parentAlt)) {
+      const control = this.studentForm.get('parentAlternatePhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
+      this.notificationService.error(
+        'Parent alternate phone number must be 10 digits'
+      );
+      this.scrollToFirstInvalid();
+      return;
+    }
+
+    const medicalAltRaw = this.studentForm.get(
+      'medicalAlternatePhoneNumber'
+    )?.value;
+    const medicalAlt = medicalAltRaw ? String(medicalAltRaw).trim() : '';
+    if (medicalAlt && !this.validationService.isValidPhoneNumber(medicalAlt)) {
+      const control = this.studentForm.get('medicalAlternatePhoneNumber');
+      control?.setErrors({ invalidPhone: true });
+      control?.markAsTouched();
+      control?.markAsDirty();
+      this.notificationService.error(
+        'Medical alternate phone number must be 10 digits'
+      );
       this.scrollToFirstInvalid();
       return;
     }
@@ -394,6 +583,24 @@ export class ViewStudentsComponent implements OnInit {
       this.notificationService.error(
         'Unable to determine student id for update'
       );
+      this.isSaving = false;
+      return;
+    }
+
+    // Final form validity check: mark any invalid controls so errors display
+    if (!this.studentForm.valid) {
+      Object.keys(this.studentForm.controls).forEach((key) => {
+        const ctrl = this.studentForm.get(key);
+        if (!ctrl) return;
+        if (ctrl.invalid) {
+          ctrl.markAsTouched();
+          ctrl.markAsDirty();
+        }
+      });
+      this.notificationService.error(
+        'Please fill the required fields before saving'
+      );
+      this.scrollToFirstInvalid();
       this.isSaving = false;
       return;
     }
@@ -419,11 +626,14 @@ export class ViewStudentsComponent implements OnInit {
         country: this.studentForm.get('parentCountry')?.value,
         zipCode: this.studentForm.get('parentZipCode')?.value,
         phoneType: this.studentForm.get('parentPhoneType')?.value,
-        phoneNumber: this.studentForm.get('parentPhoneNumber')?.value,
+        phoneNumber: this.validationService.formatPhoneNumber(
+          this.studentForm.get('parentPhoneNumber')?.value || ''
+        ),
         alternatePhoneType: this.studentForm.get('parentAlternatePhoneType')
           ?.value,
-        alternatePhoneNumber: this.studentForm.get('parentAlternatePhoneNumber')
-          ?.value,
+        alternatePhoneNumber: this.validationService.formatPhoneNumber(
+          this.studentForm.get('parentAlternatePhoneNumber')?.value || ''
+        ),
         relationship: this.studentForm.get('parentRelationship')?.value,
       },
       medicalInfo: {
@@ -437,13 +647,21 @@ export class ViewStudentsComponent implements OnInit {
         country: this.studentForm.get('medicalCountry')?.value,
         zipCode: this.studentForm.get('medicalZipCode')?.value,
         phoneType: this.studentForm.get('medicalPhoneType')?.value,
-        phoneNumber: this.studentForm.get('medicalPhoneNumber')?.value,
+        phoneNumber: this.validationService.formatPhoneNumber(
+          this.studentForm.get('medicalPhoneNumber')?.value || ''
+        ),
+        alternatePhoneType: this.studentForm.get('medicalAlternatePhoneType')
+          ?.value,
+        alternatePhoneNumber: this.validationService.formatPhoneNumber(
+          this.studentForm.get('medicalAlternatePhoneNumber')?.value || ''
+        ),
       },
       careFacilityInfo: {
         emergencyContactName: this.studentForm.get('emergencyContactName')
           ?.value,
-        emergencyPhoneNumber: this.studentForm.get('emergencyPhoneNumber')
-          ?.value,
+        emergencyPhoneNumber: this.validationService.formatPhoneNumber(
+          this.studentForm.get('emergencyPhoneNumber')?.value || ''
+        ),
         address1: this.studentForm.get('careFacilityAddress1')?.value,
         address2: this.studentForm.get('careFacilityAddress2')?.value,
         city: this.studentForm.get('careFacilityCity')?.value,
@@ -454,27 +672,38 @@ export class ViewStudentsComponent implements OnInit {
       },
     };
 
-    this.apiService.updateStudent(Number(childId), updateData).subscribe({
-      next: (response: any) => {
-        if (response.success) {
-          this.notificationService.success(
-            'Student information updated successfully'
+    console.log('Updating student with payload:', updateData);
+    this.apiService
+      .updateStudent(Number(childId), updateData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.success) {
+            this.notificationService.success(
+              'Student information updated successfully'
+            );
+            this.isSaving = false;
+            this.isEditMode = false;
+            // Disable all controls after successful save so fields are read-only
+            Object.keys(this.studentForm.controls).forEach((key) => {
+              this.studentForm.get(key)?.disable();
+            });
+            this.loadStudentDetails();
+          }
+        },
+        error: (error) => {
+          console.error('Error updating student:', error);
+          this.notificationService.error(
+            'Failed to update student information'
           );
           this.isSaving = false;
-          this.isEditMode = false;
-          // Disable all controls after successful save so fields are read-only
-          Object.keys(this.studentForm.controls).forEach((key) => {
-            this.studentForm.get(key)?.disable();
-          });
-          this.loadStudentDetails();
-        }
-      },
-      error: (error) => {
-        console.error('Error updating student:', error);
-        this.notificationService.error('Failed to update student information');
-        this.isSaving = false;
-      },
-    });
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -497,30 +726,6 @@ export class ViewStudentsComponent implements OnInit {
     if (!field || !field.validator) return false;
     const validator = field.validator({} as any);
     return validator && validator['required'];
-  }
-
-  /**
-   * Custom validator for name fields
-   * Allows only letters, spaces, hyphens, and apostrophes
-   */
-  nameValidator(control: any) {
-    if (control.value == null) return null;
-    const raw = String(control.value);
-    const trimmed = raw.trim();
-    if (trimmed.length === 0) return null;
-    if (!this.validationService.isValidName(trimmed)) {
-      return { invalidName: true };
-    }
-    return null;
-  }
-
-  addressValidator(control: any) {
-    if (control.value == null) return null;
-    const val = String(control.value).trim();
-    if (val.length === 0) return null;
-    return this.validationService.isValidAddress(val)
-      ? null
-      : { invalidAddress: true };
   }
 
   // Note: Using Angular's built-in Validators.email for generic email validation
